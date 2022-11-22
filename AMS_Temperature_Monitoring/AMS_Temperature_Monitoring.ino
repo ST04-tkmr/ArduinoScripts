@@ -26,13 +26,17 @@
 
 #include <math.h>
 #include <MsTimer2.h>
+#include <Wire.h>
+
+#define ADRS 8
 
 //電圧読み取り用ピン番号
-#define THM_0 A0
-#define THM_1 A1
-#define THM_2 A2
-#define THM_3 A3
-#define THM_4 A4
+#define THM_0 0
+#define THM_1 1
+#define THM_2 2
+#define THM_3 3
+#define THM_4 6
+#define THM_5 7
 
 // バッテリー温度危険信号出力ピン番号
 #define Danger_SGN 6
@@ -51,30 +55,31 @@
 #define TEMP_MAX 30.0f
 #define TEMP_MIN 0.0f
 
-//サーミスタ数(使うアナログピン数)
+//サーミスタ数(使うアナログピン数) <= 6
 #define THM_NUM 4
 
-//アナログピンから読み取った値を格納
-int BCT[THM_NUM];
+volatile float temp_THM_MAX,temp_THM_MIN,temp_THM_AVR;
+volatile unsigned char warningFlag,dangerFlag;
 
-//サーミスタの抵抗値を格納
-float THM_R[THM_NUM];
+typedef struct {
+  volatile int val; //アナログピンから読み取った値を格納
+  volatile float val_r; //サーミスタの抵抗値を格納
+  volatile double val_temp; //サーミスタの抵抗から計算した温度を格納
+} thermistor;
 
-//サーミスタの抵抗から計算した温度を格納
-double temp_THM[THM_NUM];
+volatile thermistor data_THM[THM_NUM];
 
-double temp_THM_MAX,temp_THM_AVR;
-
-float chatt[THM_NUM][3];
-
-char circuitOpenFlag;
-
-float calc_R(int BCT);
-double calc_temp(float r);
-void checkTemp();
-void checkOpen();
+float calc_R(int val);  //読み込んだ電圧からサーミスタの抵抗を計算
+double calc_temp(float r);  //抵抗から温度計算
+void checkTemp(); //シリアルモニタで温度チェック+最大・最小・平均温度更新
+float getMaxTemp(thermistor *thm); //最大温度取得
+float getMinTemp(thermistor *thm); //最小温度取得
+float getTempAvr(thermistor *thm); //平均温度取得
+void sendData();
 
 void setup() {
+  Wire.begin(ADRS);
+  Wire.onRequest(sendData);
   
   Serial.begin(9600);
   
@@ -83,44 +88,54 @@ void setup() {
   pinMode(THM_2,INPUT);
   pinMode(THM_3,INPUT);
   pinMode(THM_4,INPUT);
+  pinMode(THM_5,INPUT);
 
   pinMode(Danger_SGN,OUTPUT);
-
   digitalWrite(Danger_SGN, HIGH);
+
+  warningFlag = 0;
+  dangerFlag = 0;
 
   MsTimer2::set(500, checkTemp);
   MsTimer2::start();
-
-  circuitOpenFlag = false;
 }
 
 void loop() {
 
-  BCT[0] = analogRead(THM_0);
-  BCT[1] = analogRead(THM_1);
-  BCT[2] = analogRead(THM_2);
-  BCT[3] = analogRead(THM_3);
-  //BCT[4] = analogRead(THM_4);
+  data_THM[0].val = analogRead(THM_0);
+  data_THM[1].val = analogRead(THM_1);
+  data_THM[2].val = analogRead(THM_2);
+  data_THM[3].val = analogRead(THM_3);
+  //data_THM[4].val = analogRead(THM_4);
+  //data_THM[5].val = analogRead(THM_5);
 
-  for (char i=0; i<THM_NUM; i++) {
-    THM_R[i] = calc_R(BCT[i]);
-    temp_THM[i] = calc_temp(THM_R[i]);
-    chatt[i][2] = chatt[i][1];
-    chatt[i][1] = chatt[i][0];
-    chatt[i][0] = temp_THM[i];
+  
+  for (thermistor *p=data_THM; p!=&data_THM[THM_NUM]; p++) {
+    p->val_r = calc_R(p->val);
+    p->val_temp = calc_temp(p->val_r);
   }
 
+  temp_THM_MAX = getMaxTemp(data_THM);
+  temp_THM_MIN = getMinTemp(data_THM);
+  temp_THM_AVR = getTempAvr(data_THM);
+
   //基準温度を超えたら信号をローにする
-  if(temp_THM[0] > TEMP_MIN
-  && temp_THM[1] > TEMP_MIN
-  && temp_THM[2] > TEMP_MIN
-  && temp_THM[3] > TEMP_MIN
-  /*&& temp_THM[4] > TEMP_MIN*/) {
-    if((TEMP_MAX > temp_THM[0])
-    && (TEMP_MAX > temp_THM[1]) 
-    && (TEMP_MAX > temp_THM[2]) 
-    && (TEMP_MAX > temp_THM[3]) 
-    /*&& (TEMP_MAX > temp_THM[4])*/){
+  if(
+  (data_THM[0].val_temp > TEMP_MIN)
+  && (data_THM[1].val_temp > TEMP_MIN)
+  && (data_THM[2].val_temp > TEMP_MIN)
+  && (data_THM[3].val_temp > TEMP_MIN)
+  //&& (data_THM[4].val_temp > TEMP_MIN)
+  //&& (data_THM[5].val_temp > TEMP_MIN)
+  ) {
+    if(
+    (TEMP_MAX > data_THM[0].val_temp)
+    && (TEMP_MAX > data_THM[1].val_temp) 
+    && (TEMP_MAX > data_THM[2].val_temp) 
+    && (TEMP_MAX > data_THM[3].val_temp) 
+    //&& (TEMP_MAX > data_THM[4].val_temp)
+    //&& (TEMP_MAX > data_THM[5].val_temp)
+    ){
       digitalWrite(Danger_SGN, LOW);  //常時LOW
     }
     else{
@@ -132,15 +147,13 @@ void loop() {
   
 }
 
-//読み込んだ電圧からサーミスタの抵抗を計算
-float calc_R(int BCT) {
+float calc_R(int val) {
   float vd,r;
-  vd = BCT * 0.0049f; //実際の電圧値に変換
+  vd = val * 0.0049f; //実際の電圧値に変換
   r = (R * vd) / (5 - vd);  //サーミスタの抵抗計算
   return r;
 }
 
-//抵抗から温度計算
 double calc_temp(float r) {
   double logOfr = log(r / R0);
   double temp = 1 / ((logOfr / B) + (1 / (T0 + 273.0f))) - 273.0f;
@@ -149,44 +162,54 @@ double calc_temp(float r) {
 
 void checkTemp() {
   Serial.print("THM_0 : ");
-  Serial.println(temp_THM[0]);
+  Serial.println(data_THM[0].val_temp);
   Serial.print("THM_1 : ");
-  Serial.println(temp_THM[1]);
+  Serial.println(data_THM[1].val_temp);
   Serial.print("THM_2 : ");
-  Serial.println(temp_THM[2]);
+  Serial.println(data_THM[2].val_temp);
   Serial.print("THM_3 : ");
-  Serial.println(temp_THM[3]);
+  Serial.println(data_THM[3].val_temp);
   /*Serial.print("THM_4 : ");　　//はんだがめんどくさいから実験中はつかわない
-  Serial.println(temp_THM[4]);*/
-  temp_THM_MAX = temp_THM[getMaxTempIndex(temp_THM)];
-  temp_THM_AVR = getTempAvr(temp_THM);
+  Serial.println(data_THM[4].val_temp);*/
   Serial.print("MAX TEMP : ");
   Serial.println(temp_THM_MAX);
+  Serial.print("MIN TEMP : ");
+  Serial.println(temp_THM_MIN);
   Serial.print("AVR TEMP : ");
   Serial.println(temp_THM_AVR);
 }
 
-void checkOpen() {
-  
-}
-
-char getMaxTempIndex(double temp[]) {
-  char max_index = 0;
+float getMaxTemp(thermistor *thm) {
   double max_temp = -273;
-  for (int i=0; i<THM_NUM; i++) {
-    if (temp[i] > max_temp) {
-      max_temp = temp[i];
-      max_index = i;
+  for (thermistor *p=thm; p!=&thm[THM_NUM]; p++) {
+    if (p->val_temp > max_temp) {
+      max_temp = p->val_temp;
     }
   }
-  return max_index;
+  return (float) max_temp;
 }
 
-double getTempAvr(double temp[]) {
+float getMinTemp(thermistor *thm) {
+  double min_temp = 273;
+  for (thermistor *p=thm; p!=&thm[THM_NUM]; p++) {
+    if (p->val_temp < min_temp) {
+      min_temp = p->val_temp;
+    }
+  }
+  return (float) min_temp;
+}
+
+float getTempAvr(thermistor *thm) {
   double avr = 0;
-  for (int i=0; i<THM_NUM; i++) {
-    avr += temp[i];
+  for (thermistor *p=thm; p!=&thm[THM_NUM]; p++) {
+    avr += p->val_temp;
   }
   avr = avr / THM_NUM;
-  return avr;
+  return (float) avr;
+}
+
+void sendData() {
+  for (thermistor *p=data_THM; p!=&data_THM[THM_NUM]; p++) {
+    Wire.write((char) (p->val / 4));
+  }
 }
