@@ -46,6 +46,11 @@
 //サーミスタ数(使うアナログピン数) <= 6
 #define THM_NUM 4
 
+#define INIT 0
+#define SAFE 1
+#define WARNING 2
+#define DANGER 3
+
 typedef struct {
   //アナログピンから読み取った値を格納
   volatile int val;
@@ -53,21 +58,29 @@ typedef struct {
   volatile float val_r;
   //サーミスタの抵抗から計算した温度を格納
   volatile double val_temp;
-  //過去の読み込んだ値を入れておく
+  //過去と現在の読み込んだ値を入れておく
   volatile int chatt[3];
 } thermistor;
 
 //読み込んだ電圧からサーミスタの抵抗を計算
 float calc_R(int val);
+
 //抵抗から温度計算
 double calc_temp(float r);
+
 //シリアルモニタで温度チェック+最大・最小・平均温度更新
 void checkTemp();
+
 //最大温度取得
+//thm サーミスタのパラメータ配列の先頭のポインタ
 double getMaxTemp(thermistor *thm);
+
 //最小温度取得
+//thm サーミスタのパラメータ配列の先頭のポインタ
 double getMinTemp(thermistor *thm);
+
 //平均温度取得
+//thm サーミスタのパラメータ配列の先頭のポインタ
 double getTempAvr(thermistor *thm);
 
 float calc_R(int val) {
