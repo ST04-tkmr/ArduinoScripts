@@ -58,8 +58,6 @@ typedef struct {
   volatile float val_r;
   //サーミスタの抵抗から計算した温度を格納
   volatile double val_temp;
-  //過去と現在の読み込んだ値を入れておく
-  volatile int chatt[3];
 } thermistor;
 
 //読み込んだ電圧からサーミスタの抵抗を計算

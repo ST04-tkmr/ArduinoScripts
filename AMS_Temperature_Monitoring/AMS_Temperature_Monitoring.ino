@@ -12,27 +12,34 @@
 #define THM_4 6
 #define THM_5 7
 
+//バッテリー温度警告信号出力ピン番号
+#define WARNING_SGN 7
+
 // バッテリー温度危険信号出力ピン番号
 #define Danger_SGN 6
 
 //すべてのサーミスタの最大・最小・平均温度
 volatile double temp_THM_MAX,temp_THM_MIN,temp_THM_AVR;
-volatile unsigned char nowState = INIT;
-volatile unsigned char nextState = INIT;
+
+volatile unsigned char nowState;
+volatile unsigned char nextState;
+volatile unsigned char dangerFlag;
 
 //サーミスタの構造体配列
 volatile thermistor data_THM[THM_NUM];
+
 //data_THMのポインタ
 volatile thermistor *p_thm;
 
-//アナログピンで読み取る値の平均
-volatile int val_avr;
-//val_avrの1割、過去と現在のvalの差がこの値以内に治っている状態で判定を行う(ノイズ対策)
-volatile int allowable_val_err;
+//ヒステリシス
+volatile float hys;
+
 //現在の時間
 volatile unsigned long nowTime;
+
 //最後にキャリブレーションを実行した時間
 volatile unsigned long lastCalTime;
+
 //キャリブレーションのインターバル(ms)
 const unsigned long CAL_INTERVAL = 5000;
 
@@ -62,6 +69,7 @@ void setup() {
   pinMode(THM_4,INPUT);
   pinMode(THM_5,INPUT);
 
+  pinMode(WARNING_SGN,OUTPUT);
   pinMode(Danger_SGN,OUTPUT);
 
   //シリアルモニタで監視
@@ -72,12 +80,12 @@ void setup() {
 
 void loop() {
   //電圧読み取り
-  data_THM[0].val = analogRead(THM_0);
-  data_THM[1].val = analogRead(THM_1);
-  data_THM[2].val = analogRead(THM_2);
-  data_THM[3].val = analogRead(THM_3);
-  //data_THM[4].val = analogRead(THM_4);
-  //data_THM[5].val = analogRead(THM_5);
+  p_thm->val = analogRead(THM_0);
+  (p_thm + 1)->val = analogRead(THM_1);
+  (p_thm + 2)->val = analogRead(THM_2);    
+  (p_thm + 3)->val = analogRead(THM_3);
+  //(p_thm + 4)->val = analogRead(THM_4);
+  //(p_thm + 5)->val = analogRead(THM_5);
 
   //抵抗、温度計算
   for (int i=0; i<THM_NUM; i++) {
@@ -89,40 +97,43 @@ void loop() {
   temp_THM_MIN = getMinTemp(data_THM);
   temp_THM_AVR = getTempAvr(data_THM);
 
-  if (
-    (data_THM[0].val_temp > TEMP_MIN)
-    && (data_THM[1].val_temp > TEMP_MIN)
-    && (data_THM[2].val_temp > TEMP_MIN)
-    && (data_THM[3].val_temp > TEMP_MIN)
-    //&& (data_THM[4].val_temp > TEMP_MIN)
-    //&& (data_THM[5].val_temp > TEMP_MIN)
-  ) {
-    if(
-      (TEMP_MAX > data_THM[0].val_temp)
-      && (TEMP_MAX > data_THM[1].val_temp) 
-      && (TEMP_MAX > data_THM[2].val_temp) 
-      && (TEMP_MAX > data_THM[3].val_temp) 
-      //&& (TEMP_MAX > data_THM[4].val_temp)
-      //&& (TEMP_MAX > data_THM[5].val_temp)
-    ){
-      digitalWrite(Danger_SGN, LOW);  //常時LOW
-    } else {
-      digitalWrite(Danger_SGN, HIGH); //異常検知HIGH
+  //温度判定
+  if (temp_THM_MIN <= (TEMP_MIN + hys) || temp_THM_MAX >= (TEMP_MAX - hys)) {
+    if (nowState == SAFE) {
+      nextState = WARNING;  //SAFE -> WARNING
+    } else if (nowState == WARNING) {
+      if (temp_THM_MIN <= TEMP_MIN || temp_THM_MAX >= TEMP_MAX) {
+        nextState = DANGER; //WARNING -> DANGER
+      } else if (temp_THM_MIN > (TEMP_MIN + hys) && temp_THM_MAX < (TEMP_MAX - hys)) {
+        nextState = SAFE; //WARNING -> SAFE
+      }
+    } else if (nowState == DANGER) {
+      if ((temp_THM_MIN > TEMP_MIN) && (temp_THM_MAX < TEMP_MAX)) {
+        nextState = WARNING;  //DANGER -> WARNING
+      }
     }
-  } else {
-    digitalWrite(Danger_SGN, HIGH); //異常検知HIGH
+  }
+
+  //警告、危険状態が連続したら信号出力
+  if ((nowState == WARNING) && (nextState == WARNING)) {
+
+  } else if ((nowState == DANGER) && (nextState == DANGER)) {
+    digitalWrite(Danger_SGN, HIGH);
   }
 
   nowTime = millis();
   //前回のキャリブレーションから一定時間後に再度実行
   if ((nowTime - lastCalTime) > CAL_INTERVAL) {
     runCalibration();
+    lastCalTime = nowTime;
   }
 
   //millisがオーバーフローしたら更新
-  if (nowTime <= lastCalTime) {
+  if (nowTime < lastCalTime) {
     lastCalTime = nowTime;
   }
+
+  nowState = nextState;
 }
 
 void checkTemp() {
@@ -153,77 +164,53 @@ void sendData() {
 }
 
 void _init(int time) {
-  //アナログピンから読み取った値を合計
-  int val_sum = 0;
   p_thm = data_THM;
+  nowState = INIT;
+  nextState = INIT;
 
   //引数で受け取った時間分データ更新
   while (millis() < time) {
-    data_THM[0].val = analogRead(THM_0);
-    data_THM[1].val = analogRead(THM_1);
-    data_THM[2].val = analogRead(THM_2);
-    data_THM[3].val = analogRead(THM_3);
-    //data_THM[4].val = analogRead(THM_4);
-    //data_THM[5].val = analogRead(THM_5);
-
-    //過去と現在の値更新
-    for (int i=0; i<THM_NUM; i++) {
-      (p_thm + i)->chatt[2] = (p_thm + i)->chatt[1];
-      (p_thm + i)->chatt[1] = (p_thm + i)->chatt[0];
-      (p_thm + i)->chatt[0] = (p_thm + i)->val;
-    }
+    runCalibration();
 
     delay(1); 
   }
 
-  //抵抗値、温度、valの合計
+  //初期値をセット
+  nowTime = millis();
+  lastCalTime = nowTime;
+}
+
+void runCalibration() {
+  p_thm->val = analogRead(THM_0);
+  (p_thm + 1)->val = analogRead(THM_1);
+  (p_thm + 2)->val = analogRead(THM_2);    
+  (p_thm + 3)->val = analogRead(THM_3);
+  //(p_thm + 4)->val = analogRead(THM_4);
+  //(p_thm + 5)->val = analogRead(THM_5);
+
+  //抵抗値、温度計算
   for (int i=0; i<THM_NUM; i++) {
     (p_thm + i)->val_r = calc_R((p_thm + i)->val);
     (p_thm + i)->val_temp = calc_temp((p_thm + i)->val_r);
-    val_sum += (p_thm + i)->val;
   }
-  //平均値
-  val_avr = val_sum / THM_NUM;
-  //平均値の1割
-  allowable_val_err = val_avr / 10;
 
   //各データ算出
   temp_THM_MAX = getMaxTemp(data_THM);
   temp_THM_MIN = getMinTemp(data_THM);
   temp_THM_AVR = getTempAvr(data_THM);
 
-  //初期値をセット
-  lastCalTime = millis();
-  nowTime = millis();
-}
+  //ヒステリシス(平均の1割)
+  hys = temp_THM_AVR / 10;
 
-void runCalibration() {
-  //アナログピンから読み取った値を合計
-  int val_sum = 0;
-  data_THM[0].val = analogRead(THM_0);
-  data_THM[1].val = analogRead(THM_1);
-  data_THM[2].val = analogRead(THM_2);    
-  data_THM[3].val = analogRead(THM_3);
-  //data_THM[4].val = analogRead(THM_4);
-  //data_THM[5].val = analogRead(THM_5);
-
-  //過去と現在の値更新
-  for (int i=0; i<THM_NUM; i++) {
-    (p_thm + i)->chatt[2] = (p_thm + i)->chatt[1];
-    (p_thm + i)->chatt[1] = (p_thm + i)->chatt[0];
-    (p_thm + i)->chatt[0] = (p_thm + i)->val;
+  if (nowState == INIT) {
+    if (
+      (temp_THM_MIN > (TEMP_MIN + hys)) && 
+      (temp_THM_MAX < (TEMP_MAX - hys)) &&
+      (temp_THM_AVR > (TEMP_MIN + hys)) && (temp_THM_AVR < (TEMP_MAX - hys))
+    ) {
+      nowState = SAFE;
+    } else {
+      nowState = WARNING;
+    }
   }
-
-  //抵抗値、温度、valの合計
-  for (int i=0; i<THM_NUM; i++) {
-    (p_thm + i)->val_r = calc_R((p_thm + i)->val);
-    (p_thm + i)->val_temp = calc_temp((p_thm + i)->val_r);
-    val_sum += (p_thm + i)->val;
-  }
-  //平均値
-  val_avr = val_sum / THM_NUM;
-  //平均値の1割
-  allowable_val_err = val_avr / 10;
-
-  lastCalTime = nowTime;
 }
