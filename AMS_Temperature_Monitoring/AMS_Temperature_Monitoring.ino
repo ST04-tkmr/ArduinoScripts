@@ -21,8 +21,15 @@
 //すべてのサーミスタの最大・最小・平均温度
 volatile double temp_THM_MAX,temp_THM_MIN,temp_THM_AVR;
 
+//過去の状態
+volatile unsigned char pastState;
+//現在の状態
 volatile unsigned char nowState;
+//次の状態
 volatile unsigned char nextState;
+//警告フラグ
+volatile unsigned char warningFlag;
+//危険フラグ、1になったら再起動するまで0にならない
 volatile unsigned char dangerFlag;
 
 //サーミスタの構造体配列
@@ -97,7 +104,7 @@ void loop() {
   temp_THM_MIN = getMinTemp(data_THM);
   temp_THM_AVR = getTempAvr(data_THM);
 
-  //温度判定
+  //温度判定、次の状態を更新
   if (temp_THM_MIN <= (TEMP_MIN + hys) || temp_THM_MAX >= (TEMP_MAX - hys)) {
     if (nowState == SAFE) {
       nextState = WARNING;  //SAFE -> WARNING
@@ -114,10 +121,19 @@ void loop() {
     }
   }
 
-  //警告、危険状態が連続したら信号出力
-  if ((nowState == WARNING) && (nextState == WARNING)) {
+  pastState = nowState; //過去の状態を更新
+  nowState = nextState; //現在の状態を更新
 
-  } else if ((nowState == DANGER) && (nextState == DANGER)) {
+  //警告、危険が連続したらフラグが立つ
+  warningFlag = (pastState == WARNING) && (nowState == WARNING);
+  if (!dangerFlag) {  //フラグが立ったら更新しない
+    dangerFlag = (pastState == DANGER) && (nowState == DANGER);
+  }
+
+  //警告、危険信号出力
+  if (warningFlag) {
+
+  } else if (dangerFlag) {
     digitalWrite(Danger_SGN, HIGH);
   }
 
@@ -132,8 +148,6 @@ void loop() {
   if (nowTime < lastCalTime) {
     lastCalTime = nowTime;
   }
-
-  nowState = nextState;
 }
 
 void checkTemp() {
@@ -165,8 +179,11 @@ void sendData() {
 
 void _init(int time) {
   p_thm = data_THM;
+  pastState = INIT;
   nowState = INIT;
   nextState = INIT;
+  warningFlag = 0;
+  dangerFlag = 0;
 
   //引数で受け取った時間分データ更新
   while (millis() < time) {
