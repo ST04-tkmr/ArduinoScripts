@@ -71,15 +71,15 @@ void checkTemp();
 
 //最大温度取得
 //thm サーミスタのパラメータ配列の先頭のポインタ
-double getMaxTemp(thermistor *thm);
+double getMaxTemp(volatile thermistor *thm);
 
 //最小温度取得
 //thm サーミスタのパラメータ配列の先頭のポインタ
-double getMinTemp(thermistor *thm);
+double getMinTemp(volatile thermistor *thm);
 
 //平均温度取得
 //thm サーミスタのパラメータ配列の先頭のポインタ
-double getTempAvr(thermistor *thm);
+double getTempAvr(volatile thermistor *thm);
 
 float calc_R(int val) {
   float vd,r;
@@ -94,7 +94,7 @@ double calc_temp(float r) {
   return temp;
 }
 
-double getMaxTemp(thermistor *thm) {
+double getMaxTemp(volatile thermistor *thm) {
   double max_temp = -273;
   for (int i=0; i<THM_NUM; i++) {
     if ((thm + i)->val_temp > max_temp) {
@@ -104,7 +104,7 @@ double getMaxTemp(thermistor *thm) {
   return max_temp;
 }
 
-double getMinTemp(thermistor *thm) {
+double getMinTemp(volatile thermistor *thm) {
   double min_temp = 273;
   for (int i=0; i<THM_NUM; i++) {
     if ((thm + i)->val_temp < min_temp) {
@@ -114,7 +114,7 @@ double getMinTemp(thermistor *thm) {
   return min_temp;
 }
 
-double getTempAvr(thermistor *thm) {
+double getTempAvr(volatile thermistor *thm) {
   double avr = 0;
   for (int i=0; i<THM_NUM; i++) {
     avr += (thm + i)->val_temp;

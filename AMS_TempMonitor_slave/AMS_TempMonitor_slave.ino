@@ -2,7 +2,7 @@
 #include <MsTimer2.h>
 #include <Wire.h>
 
-#define ADRS 8
+#define ADRS 0b0000000
 
 //電圧読み取り用ピン番号
 #define THM_0 0
@@ -71,6 +71,7 @@ void setup() {
   //ピンモード設定
   pinMode(THM_0,INPUT);
   pinMode(THM_1,INPUT);
+  
   pinMode(THM_2,INPUT);
   pinMode(THM_3,INPUT);
   pinMode(THM_4,INPUT);
@@ -100,11 +101,13 @@ void loop() {
     (p_thm + i)->val_temp = calc_temp((p_thm + i)->val_r);
   }
 
-  temp_THM_MAX = getMaxTemp(data_THM);
-  temp_THM_MIN = getMinTemp(data_THM);
-  temp_THM_AVR = getTempAvr(data_THM);
+  temp_THM_MAX = getMaxTemp(p_thm);
+  temp_THM_MIN = getMinTemp(p_thm);
+  temp_THM_AVR = getTempAvr(p_thm);
 
   //温度判定、次の状態を更新
+  //スレーブ側ではやらないのでコメントアウト
+  /*
   if (temp_THM_MIN <= (TEMP_MIN + hys) || temp_THM_MAX >= (TEMP_MAX - hys)) {
     if (nowState == SAFE) {
       nextState = WARNING;  //SAFE -> WARNING
@@ -136,15 +139,16 @@ void loop() {
   } else if (dangerFlag) {
     digitalWrite(Danger_SGN, HIGH);
   }
+  */
 
   nowTime = millis();
   //前回のキャリブレーションから一定時間後に再度実行
   if ((nowTime - lastCalTime) > CAL_INTERVAL) {
-    runCalibration();
-    lastCalTime = nowTime;
+    runCalibration(); //キャリブレーション
+    lastCalTime = nowTime;  //最後にキャリブレーションを行った時間を更新
   }
 
-  //millisがオーバーフローしたら更新
+  //millisがオーバーフロー(約50日)したら更新
   if (nowTime < lastCalTime) {
     lastCalTime = nowTime;
   }
@@ -159,8 +163,10 @@ void checkTemp() {
   Serial.println(data_THM[2].val_temp);
   Serial.print("THM_3 : ");
   Serial.println(data_THM[3].val_temp);
-  /*Serial.print("THM_4 : ");　　//はんだがめんどくさいから実験中はつかわない
-  Serial.println(data_THM[4].val_temp);*/
+  /*Serial.print("THM_4 : ");
+  Serial.println(data_THM[4].val_temp);
+  Serial.print("THM_5 : ");
+  Serial.println(data_THM[5].val_temp);*/
   Serial.print("MAX TEMP : ");
   Serial.println(temp_THM_MAX);
   Serial.print("MIN TEMP : ");
@@ -179,11 +185,15 @@ void sendData() {
 
 void _init(int time) {
   p_thm = data_THM;
+
+  //スレーブ側では判定を行わないのでコメントアウト
+  /*
   pastState = INIT;
   nowState = INIT;
   nextState = INIT;
   warningFlag = 0;
   dangerFlag = 0;
+  */
 
   //引数で受け取った時間分データ更新
   while (millis() < time) {
@@ -219,6 +229,10 @@ void runCalibration() {
   //ヒステリシス(平均の1割)
   hys = temp_THM_AVR / 10;
 
+  //スレーブ側では判定を行わないのでコメントアウト
+  //起動時(初期化状態)のみ実行
+  //最大最小平均すべてが許容範囲内である場合のみSAFE状態とする
+  /*
   if (nowState == INIT) {
     if (
       (temp_THM_MIN > (TEMP_MIN + hys)) && 
@@ -230,4 +244,5 @@ void runCalibration() {
       nowState = WARNING;
     }
   }
+  */
 }
