@@ -1,42 +1,45 @@
-#include "AMS_TemperatureMonitoring.h"
 #include <MsTimer2.h>
 #include <Wire.h>
+#include "AMS_TemperatureMonitoring.h"
 
-#define ADRS 0b0000000
+#define ADRS (0b0000000)
 
 //電圧読み取り用ピン番号
-#define THM_0 0
-#define THM_1 1
-#define THM_2 2
-#define THM_3 3
-#define THM_4 6
-#define THM_5 7
+#define THM_0 (0)
+#define THM_1 (1)
+#define THM_2 (2)
+#define THM_3 (3)
+#define THM_4 (6)
+#define THM_5 (7)
 
 //バッテリー温度警告信号出力ピン番号
-#define WARNING_SGN 7
+#define WARNING_SGN (7)
 
 // バッテリー温度危険信号出力ピン番号
-#define Danger_SGN 6
+#define DANGER_SGN (6)
 
 //すべてのサーミスタの最大・最小・平均温度
-volatile double temp_THM_MAX,temp_THM_MIN,temp_THM_AVR;
+volatile float tempThmMax,tempThmMin,tempThmAvr;
 
+//スレーブ側では判定を行わないのでコメントアウト
+/*
 //過去の状態
-volatile unsigned char pastState;
+volatile state pastState;
 //現在の状態
-volatile unsigned char nowState;
+volatile state nowState;
 //次の状態
-volatile unsigned char nextState;
+volatile state nextState;
 //警告フラグ
 volatile unsigned char warningFlag;
 //危険フラグ、1になったら再起動するまで0にならない
 volatile unsigned char dangerFlag;
+*/
 
 //サーミスタの構造体配列
-volatile thermistor data_THM[THM_NUM];
+volatile thermistor thmData[THM_NUM];
 
 //data_THMのポインタ
-volatile thermistor *p_thm;
+volatile thermistor *const pThm = thmData;
 
 //ヒステリシス
 volatile float hys;
@@ -48,8 +51,10 @@ volatile unsigned long nowTime;
 volatile unsigned long lastCalTime;
 
 //キャリブレーションのインターバル(ms)
-const unsigned long CAL_INTERVAL = 5000;
+static const unsigned long calInterval = 5000;
 
+//シリアルモニタで温度チェック+最大・最小・平均温度更新
+void checkTemp();
 //マスターからデータのリクエストがあった時に実行
 void sendData();
 //初期化関数、センサーのキャリブレーションなど
@@ -78,7 +83,7 @@ void setup() {
   pinMode(THM_5,INPUT);
 
   pinMode(WARNING_SGN,OUTPUT);
-  pinMode(Danger_SGN,OUTPUT);
+  pinMode(DANGER_SGN,OUTPUT);
 
   //シリアルモニタで監視
   //割り込み処理で実行するので、シリアルモニタを使わない時または実機で動かす時はコメントアウトしておく
@@ -88,37 +93,37 @@ void setup() {
 
 void loop() {
   //電圧読み取り
-  p_thm->val = analogRead(THM_0);
-  (p_thm + 1)->val = analogRead(THM_1);
-  (p_thm + 2)->val = analogRead(THM_2);    
-  (p_thm + 3)->val = analogRead(THM_3);
-  //(p_thm + 4)->val = analogRead(THM_4);
-  //(p_thm + 5)->val = analogRead(THM_5);
+  pThm->val = analogRead(THM_0);
+  (pThm + 1)->val = analogRead(THM_1);
+  (pThm + 2)->val = analogRead(THM_2);    
+  (pThm + 3)->val = analogRead(THM_3);
+  //(pThm + 4)->val = analogRead(THM_4);
+  //(pThm + 5)->val = analogRead(THM_5);
 
   //抵抗、温度計算
   for (int i=0; i<THM_NUM; i++) {
-    (p_thm + i)->val_r = calc_R((p_thm + i)->val);
-    (p_thm + i)->val_temp = calc_temp((p_thm + i)->val_r);
+    (pThm + i)->valR = calcR((pThm + i)->val);
+    (pThm + i)->valTemp = calcTemp((pThm + i)->valR);
   }
 
-  temp_THM_MAX = getMaxTemp(p_thm);
-  temp_THM_MIN = getMinTemp(p_thm);
-  temp_THM_AVR = getTempAvr(p_thm);
+  tempThmMax = getMaxTemp(pThm);
+  tempThmMin = getMinTemp(pThm);
+  tempThmAvr = getAvrTemp(pThm);
 
   //温度判定、次の状態を更新
   //スレーブ側ではやらないのでコメントアウト
   /*
-  if (temp_THM_MIN <= (TEMP_MIN + hys) || temp_THM_MAX >= (TEMP_MAX - hys)) {
+  if (tempThmMin <= (getAllowableTempMin() + hys) || tempThmMax >= (getAllowableTempMax() - hys)) {
     if (nowState == SAFE) {
       nextState = WARNING;  //SAFE -> WARNING
     } else if (nowState == WARNING) {
-      if (temp_THM_MIN <= TEMP_MIN || temp_THM_MAX >= TEMP_MAX) {
+      if (tempThmMin <= getAllowableTempMin() || tempThmMax >= getAllowableTempMax()) {
         nextState = DANGER; //WARNING -> DANGER
-      } else if (temp_THM_MIN > (TEMP_MIN + hys) && temp_THM_MAX < (TEMP_MAX - hys)) {
+      } else if (tempThmMin > (getAllowableTempMin() + hys) && tempThmMax < (getAllowableTempMax() - hys)) {
         nextState = SAFE; //WARNING -> SAFE
       }
     } else if (nowState == DANGER) {
-      if ((temp_THM_MIN > TEMP_MIN) && (temp_THM_MAX < TEMP_MAX)) {
+      if ((tempThmMin > getAllowableTempMin()) && (tempThmMax < getAllowableTempMax())) {
         nextState = WARNING;  //DANGER -> WARNING
       }
     }
@@ -143,7 +148,7 @@ void loop() {
 
   nowTime = millis();
   //前回のキャリブレーションから一定時間後に再度実行
-  if ((nowTime - lastCalTime) > CAL_INTERVAL) {
+  if ((nowTime - lastCalTime) > calInterval) {
     runCalibration(); //キャリブレーション
     lastCalTime = nowTime;  //最後にキャリブレーションを行った時間を更新
   }
@@ -156,36 +161,34 @@ void loop() {
 
 void checkTemp() {
   Serial.print("THM_0 : ");
-  Serial.println(data_THM[0].val_temp);
+  Serial.println(thmData[0].valTemp);
   Serial.print("THM_1 : ");
-  Serial.println(data_THM[1].val_temp);
+  Serial.println(thmData[1].valTemp);
   Serial.print("THM_2 : ");
-  Serial.println(data_THM[2].val_temp);
+  Serial.println(thmData[2].valTemp);
   Serial.print("THM_3 : ");
-  Serial.println(data_THM[3].val_temp);
+  Serial.println(thmData[3].valTemp);
   /*Serial.print("THM_4 : ");
-  Serial.println(data_THM[4].val_temp);
+  Serial.println(thmData[4].valTemp);
   Serial.print("THM_5 : ");
-  Serial.println(data_THM[5].val_temp);*/
+  Serial.println(thmData[5].valTemp);*/
   Serial.print("MAX TEMP : ");
-  Serial.println(temp_THM_MAX);
+  Serial.println(tempThmMax);
   Serial.print("MIN TEMP : ");
-  Serial.println(temp_THM_MIN);
+  Serial.println(tempThmMin);
   Serial.print("AVR TEMP : ");
-  Serial.println(temp_THM_AVR);
+  Serial.println(tempThmAvr);
 }
 
 void sendData() {
   //アナログピンから読み取った値をマスタに送る
   //送れるデータは1バイトなのでvalを4で割る
   for (int i=0; i<THM_NUM; i++) {
-    Wire.write((char) ((p_thm + i)->val / 4));
+    Wire.write((char) ((pThm + i)->val / 4));
   }
 }
 
 void _init(int time) {
-  p_thm = data_THM;
-
   //スレーブ側では判定を行わないのでコメントアウト
   /*
   pastState = INIT;
@@ -208,26 +211,26 @@ void _init(int time) {
 }
 
 void runCalibration() {
-  p_thm->val = analogRead(THM_0);
-  (p_thm + 1)->val = analogRead(THM_1);
-  (p_thm + 2)->val = analogRead(THM_2);    
-  (p_thm + 3)->val = analogRead(THM_3);
-  //(p_thm + 4)->val = analogRead(THM_4);
-  //(p_thm + 5)->val = analogRead(THM_5);
+  pThm->val = analogRead(THM_0);
+  (pThm + 1)->val = analogRead(THM_1);
+  (pThm + 2)->val = analogRead(THM_2);    
+  (pThm + 3)->val = analogRead(THM_3);
+  //(pThm + 4)->val = analogRead(THM_4);
+  //(pThm + 5)->val = analogRead(THM_5);
 
   //抵抗値、温度計算
   for (int i=0; i<THM_NUM; i++) {
-    (p_thm + i)->val_r = calc_R((p_thm + i)->val);
-    (p_thm + i)->val_temp = calc_temp((p_thm + i)->val_r);
+    (pThm + i)->valR = calcR((pThm + i)->val);
+    (pThm + i)->valTemp = calcTemp((pThm + i)->valR);
   }
 
   //各データ算出
-  temp_THM_MAX = getMaxTemp(data_THM);
-  temp_THM_MIN = getMinTemp(data_THM);
-  temp_THM_AVR = getTempAvr(data_THM);
+  tempThmMax = getMaxTemp(thmData);
+  tempThmMin = getMinTemp(thmData);
+  tempThmAvr = getAvrTemp(thmData);
 
   //ヒステリシス(平均の1割)
-  hys = temp_THM_AVR / 10;
+  hys = tempThmAvr / 10;
 
   //スレーブ側では判定を行わないのでコメントアウト
   //起動時(初期化状態)のみ実行
