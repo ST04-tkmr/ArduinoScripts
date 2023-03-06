@@ -30,7 +30,7 @@ unsigned char buf[8];
 void loop() {
   CAN.sendMsgBuf(0x301, 0, 8, stmp);
 
-  //delay(500);
+  delay(500);
  
   String a1bit0,a1bit1,a1bit2,a1bit3,a1bit4,a1bit5,a1bit6,a1bit7,a1bit8,a1bit9,a1bit10,a1bit11,a1bit12,a1bit13,a1bit14,a1bit15,a1bit16,a1bit17,a1bit18,a1bit19,a1bit20,a1bit21,a1bit22,a1bit23,a1bit24,a1bit25,a1bit26,a1bit27,a1bit28,a1bit29,a1bit30,a1bit31,a1bit32,a1bit33,a1bit34,a1bit35,a1bit36,a1bit37,a1bit38,a1bit39,a1bit40,a1bit41,a1bit42,a1bit43,a1bit44,a1bit45,a1bit46,a1bit47,a1bit48,a1bit49,a1bit50,a1bit51,a1bit52,a1bit53,a1bit54,a1bit55,a1bit56,a1bit57,a1bit58,a1bit59,a1bit60,a1bit61,a1bit62,a1bit63,Shutdown,PWM,Working,Speed,Current, Voltage,Failure;
   String a2bit0,a2bit1,a2bit2,a2bit3,a2bit4,a2bit5,a2bit6,a2bit7,a2bit8,a2bit9,a2bit10,a2bit11,a2bit12,a2bit13,a2bit14,a2bit15,a2bit16,a2bit17,a2bit18,a2bit19,a2bit20,a2bit21,a2bit22,a2bit23,a2bit24,a2bit25,a2bit26,a2bit27,a2bit28,a2bit29,a2bit30,a2bit31,a2bit32,a2bit33,a2bit34,a2bit35,a2bit36,a2bit37,a2bit38,a2bit39,a2bit40,a2bit41,a2bit42,a2bit43,a2bit44,a2bit45,a2bit46,a2bit47,a2bit48,a2bit49,a2bit50,a2bit51,a2bit52,a2bit53,a2bit54,a2bit55,a2bit56,a2bit57,a2bit58,a2bit59,a2bit60,a2bit61,a2bit62,a2bit63,Inverter,MAX,MIN,Motor;
