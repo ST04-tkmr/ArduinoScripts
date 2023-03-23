@@ -4,8 +4,8 @@ namespace {
   //  サーミスタ数
   volatile unsigned char thermistorNum;
 
-  volatile Thermistor *pThm;
-  
+  volatile Thermistor* pThm;
+
   //  最高許容温度
   volatile float allowableMaxTemp;
 
@@ -25,7 +25,7 @@ namespace {
 
   //  最後にキャリブレーションを実行した時間
   volatile unsigned long lastCalTime;
-  
+
   //  キャリブレーションのインターバル(ms)
   static const unsigned long calInterval = 5000;
 
@@ -34,10 +34,10 @@ namespace {
 
   //  警告フラグ
   volatile unsigned char warningFlag;
-  
+
   //  危険フラグ、1になったら再起動するまで0にならない
   volatile unsigned char dangerFlag;
-  
+
   //  ヒステリシス
   volatile float hys;
 }
@@ -90,7 +90,7 @@ unsigned char AmsTempMonitor::setValofThm(unsigned char index, int val) {
 void AmsTempMonitor::setReadThmFunc(void (*f)()) {
   readValofThm = f;
   setFuncFlag = 1;
-  
+
 }
 
 unsigned char AmsTempMonitor::runAMS(unsigned long nowTime) {
@@ -101,11 +101,11 @@ unsigned char AmsTempMonitor::runAMS(unsigned long nowTime) {
   float maxTemp = AmsParams::getMaxTemp();
   float minTemp = AmsParams::getMinTemp();
   float avrTemp = AmsParams::getAvrTemp();
-  
+
   if ((nowTime - lastCalTime) > calInterval) {
     //  キャリブレーション
     hys = avrTemp / 10;
-    
+
     //  最後にキャリブレーションを行った時間を更新
     lastCalTime = nowTime;
   }
@@ -139,7 +139,7 @@ void AmsTempMonitor::judgeTemp(float maxTemp, float minTemp, unsigned char *wFla
       }
     }
   }
-    
+
   //  過去と現在の状態を更新
   pastState = nowState;
   nowState = nextState;

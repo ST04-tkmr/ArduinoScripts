@@ -119,7 +119,7 @@ char get_char(void);
   Setup Variables
   The following variables can be modified to configure the software.
 ********************************************************************/
-const uint8_t TOTAL_IC = 2;//!< Number of ICs in the daisy chain
+const uint8_t TOTAL_IC = 3;//!< Number of ICs in the daisy chain
 
 //ADC Command Configurations. See LTC681x.h for options.
 const uint8_t ADC_OPT = ADC_OPT_DISABLED; //!< ADC Mode option bit
