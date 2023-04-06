@@ -1,6 +1,6 @@
 /*
  *  電圧の測定はサーミスタの電圧降下を測定
- * 
+ *
  *      |
  *      _
  *     | | R=10kΩ
@@ -14,12 +14,12 @@
  *     | |
  *      -
  *      |
- *      
+ *
  *    Vd = { 5/(10k+r) } x r よりrを算出
- *      
+ *
  *  温度T0=25度のときのサーミスタの抵抗値R0=10kΩ
  *  データシートよりB定数(25度/50度)は3380K
- * 
+ *
  *  抵抗から温度を算出する式
  *    T = 1/{ln(r/R0)/B + 1/(T0+273)} -273
  */
@@ -57,12 +57,12 @@ class Thermistor {
   public:
   Thermistor();
   char setVal(int val);
-  int getVal();
+  int getVal() volatile;
   float getR();
   float getTemp();
 };
 
-inline int Thermistor::getVal() {
+inline int Thermistor::getVal() volatile {
   return val;
 }
 
@@ -131,7 +131,7 @@ namespace AmsTempMonitor {
   //       warningFlagのポインタ, dangerFlagのポインタ
   //-------------------------------------------------------
   void judgeTemp(float maxTemp, float minTemp, unsigned char *wFlag, unsigned char *dFlag);
-  
+
   namespace AmsParams {
     //-------------------------------------------------------
     //  サーミスタの抵抗値取得
@@ -146,7 +146,7 @@ namespace AmsTempMonitor {
     //  戻り値：サーミスタの温度, 範囲外のindexの時は-273
     //-------------------------------------------------------
     float getThmTemp(unsigned char index);
-    
+
     //-------------------------------------------------------
     //  サーミスタのパラメータの配列から最高温度取得
     //  戻り値：最高温度
