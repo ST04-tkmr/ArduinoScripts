@@ -56,7 +56,7 @@ class Thermistor {
 
   public:
   Thermistor();
-  char setVal(int val);
+  char setVal(int val) volatile;
   int getVal() volatile;
   float getR();
   float getTemp();
