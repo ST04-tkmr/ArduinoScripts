@@ -27,8 +27,8 @@
  *    T = 1/{ln(r/R0)/B + 1/(T0+273)} -273
  */
 
-#ifndef AMS_TEMP_MONITOR
-#define AMS_TEMP_MONITOR
+#ifndef THERMISTOR
+#define THERMISTOR
 
 #include <math.h>
 
