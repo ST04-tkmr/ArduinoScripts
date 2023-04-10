@@ -12,6 +12,13 @@
 #define THM4 (6)
 #define THM5 (7)
 
+//データ送信
+void sendData(void);
+
+//シリアルモニタで温度確認
+//シリアルモニタを使わないときはi2cの邪魔をするので実行しない
+void checkTemp(void);
+
 void setup() {
   //ピンモード設定
   pinMode(THM0, INPUT);
@@ -26,5 +33,13 @@ void setup() {
 }
 
 void loop() {
+
+}
+
+void sendData(void) {
+
+}
+
+void checkTemp(void) {
 
 }

@@ -45,21 +45,21 @@ void readThm();
 void setup() {
   AMS::initAMS(thmNum, 30.0f, 0.0f, 0);
   AMS::setReadThmFunc(readThm);
-  
+
   //安定させるために起動後1秒間のキャリブレーション
   _init(1000);
 
-  //シリアル通信開始  
+  //シリアル通信開始
   Wire.begin(ADRS);
   //データ要求された時に実行する関数を登録
   Wire.onRequest(sendData);
-  
+
   Serial.begin(9600);
-  
+
   //ピンモード設定
   pinMode(THM_0,INPUT);
   pinMode(THM_1,INPUT);
-  
+
   pinMode(THM_2,INPUT);
   pinMode(THM_3,INPUT);
   pinMode(THM_4,INPUT);
@@ -126,7 +126,7 @@ void _init(int time) {
   while (millis() < time) {
     readThm();
 
-    delay(1); 
+    delay(1);
   }
 }
 
@@ -144,10 +144,10 @@ void readThm() {
   /*
   //ヒステリシス(平均の1割)
   hys = tempThmAvr / 10;
-  
+
   if (nowState == INIT) {
     if (
-      (temp_THM_MIN > (TEMP_MIN + hys)) && 
+      (temp_THM_MIN > (TEMP_MIN + hys)) &&
       (temp_THM_MAX < (TEMP_MAX - hys)) &&
       (temp_THM_AVR > (TEMP_MIN + hys)) && (temp_THM_AVR < (TEMP_MAX - hys))
     ) {
