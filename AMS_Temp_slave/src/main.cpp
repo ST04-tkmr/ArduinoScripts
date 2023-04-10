@@ -12,6 +12,11 @@
 #define THM4 (6)
 #define THM5 (7)
 
+static const unsigned char thmNum = 6;  //サーミスタ本数
+volatile float maxTemp, minTemp, avrTemp; //最高, 最低, 平均温度
+const float allowableMaxTemp = 60.0f;
+const float allowableMinTemp = 0.0f;
+
 //データ送信
 void sendData(void);
 
@@ -30,6 +35,7 @@ void setup() {
 
   //シリアル通信開始
   Wire.begin(ADRS);
+  Wire.onRequest(sendData);
 }
 
 void loop() {
