@@ -52,7 +52,7 @@ class Thermistor {
     //  引数：アナログピンで読み取った値(analogReadの戻り値0~1023)
     //  戻り値：成功1, 失敗0
     //-------------------------------------------------------
-    char setVal(int val);
+    char setVal(int val) volatile;
 
     int getVal();
     float getR();
