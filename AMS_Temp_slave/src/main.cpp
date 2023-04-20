@@ -12,10 +12,14 @@
 #define THM4 (6)
 #define THM5 (7)
 
-static const unsigned char thmNum = 6;  //サーミスタ本数
+const unsigned char thmNum = 6;  //サーミスタ本数
+volatile Thermistor* thm_p = new Thermistor[thmNum]; //配列のポインタ
 volatile float maxTemp, minTemp, avrTemp; //最高, 最低, 平均温度
 const float allowableMaxTemp = 60.0f;
 const float allowableMinTemp = 0.0f;
+
+//キャリブレーション
+void calibrate(unsigned int time);
 
 //データ送信
 void sendData(void);
@@ -23,6 +27,9 @@ void sendData(void);
 //シリアルモニタで温度確認
 //シリアルモニタを使わないときはi2cの邪魔をするので実行しない
 void checkTemp(void);
+
+//サーミスタにかかる電圧を読んで値をセット
+void readThmVoltage(void);
 
 void setup() {
   //ピンモード設定
@@ -42,10 +49,24 @@ void loop() {
 
 }
 
+void calibrate(unsigned int time) {
+  while (millis() < time) {
+    readThmVoltage();
+
+    delay(1);
+  }
+}
+
 void sendData(void) {
 
 }
 
 void checkTemp(void) {
+
+}
+
+void readThmVoltage(void) {
+  thm_p->setVal(analogRead(THM0));
+  (thm_p + 1)->setVal(analogRead(THM1));
 
 }

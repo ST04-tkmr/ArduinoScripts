@@ -6,7 +6,7 @@ Thermistor::Thermistor() {
     temp = 0.0f;
 }
 
-char Thermistor::setVal(int val) {
+char Thermistor::setVal(int val) volatile {
     if (0 <= val && val <= 2023) {
         this->val = val;
         r = this->calcR(this->val);
