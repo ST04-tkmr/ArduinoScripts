@@ -5,7 +5,7 @@ void checkMGECU1(void);
 
 void checkMGECU2(void);
 
-unsigned char stmp[8] = {0, 0, 0, 0, 0, 0, 0, 1};
+unsigned char stmp[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 unsigned char len = 0;
 unsigned char buf[8];
 volatile unsigned long canId;
@@ -36,8 +36,8 @@ void loop()
     requestTorque = 0;
   }
 
-  stmp[1] = requestTorque & 0xFF;
-  stmp[2] = (requestTorque >> 8) & 0x0F;
+  //stmp[1] = requestTorque & 0xFF;
+  //stmp[2] = (requestTorque >> 8) & 0x0F;
   CAN.sendMsgBuf(0x301, 0, 8, stmp);
 
   if (CAN_MSGAVAIL == CAN.checkReceive())
@@ -45,7 +45,7 @@ void loop()
     CAN.readMsgBuf(&len, buf);
     canId = CAN.getCanId();
 
-    Serial.println("--------------------");
+    Serial.println("--------buf --------");
 
     for (int i = 0; i < 8; i++)
     {
@@ -56,6 +56,24 @@ void loop()
       }
       Serial.println();
     }
+
+    Serial.println();
+    Serial.print("buf0 = ");
+    Serial.println(buf[0]);
+    Serial.print("buf1 = ");
+    Serial.println(buf[1]);
+    Serial.print("buf2 = ");
+    Serial.println(buf[2]);
+    Serial.print("buf3 = ");
+    Serial.println(buf[3]);
+    Serial.print("buf4 = ");
+    Serial.println(buf[4]);
+    Serial.print("buf5 = ");
+    Serial.println(buf[5]);
+    Serial.print("buf6 = ");
+    Serial.println(buf[6]);
+    Serial.print("buf7 = ");
+    Serial.println(buf[7]);
 
     Serial.println();
 
