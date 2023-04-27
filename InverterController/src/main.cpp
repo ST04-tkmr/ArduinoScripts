@@ -137,10 +137,10 @@ void checkMGECU1(void)
     Serial.println("短絡");
     break;
   case 0b01:
-    Serial.println("正常　トルクなし");
+    Serial.println("正常 トルクなし");
     break;
   case 0b10:
-    Serial.println("正常　制御中");
+    Serial.println("正常 制御中");
     break;
   default:
     Serial.println("error");
@@ -173,17 +173,17 @@ void checkMGECU1(void)
   Serial.print("モータ回転数 ");
   if (motorSpeed == 0x00)
   {
-    Serial.println("調整中　0位置");
+    Serial.println("調整中 0位置");
   }
   else
   {
-    Serial.println(motorSpeed);
+    Serial.println(motorSpeed - 14000);
   }
 
   Serial.print("モータ相電流 ");
   if (motorPhaseCurrent == 0x00)
   {
-    Serial.println("調整中　0位置");
+    Serial.println("調整中 0位置");
   }
   else
   {
@@ -193,7 +193,7 @@ void checkMGECU1(void)
   Serial.print("入力直流電圧 ");
   if (inputDCVoltage == 0x00)
   {
-    Serial.println("調整中　0位置");
+    Serial.println("調整中 0位置");
   }
   else
   {
@@ -237,44 +237,44 @@ void checkMGECU2(void)
   Serial.print("motorTemp = ");
   Serial.println(motorTemp, BIN);
 
-  Serial.print("インバータ温度　");
+  Serial.print("インバータ温度 ");
   if (motorSpeed == 0x00)
   {
-    Serial.println("調整中　0位置");
+    Serial.println("調整中 0位置");
   }
   else
   {
-    Serial.println(inverterTemp);
+    Serial.println(inverterTemp - 40);
   }
 
-  Serial.print("モーター上限制限トルク　");
+  Serial.print("モーター上限制限トルク ");
   if (motorSpeed == 0x00)
   {
-    Serial.println("調整中　0位置");
+    Serial.println("調整中 0位置");
   }
   else
   {
     Serial.println(maxMotorTorque);
   }
 
-  Serial.print("モーター下限制限トルク　");
+  Serial.print("モーター下限制限トルク ");
   if (motorSpeed == 0x00)
   {
-    Serial.print("調整中　0位置");
+    Serial.print("調整中 0位置");
   }
   else
   {
-    Serial.println(maxGenerateTorque);
+    Serial.println(maxGenerateTorque - 1000);
   }
 
-  Serial.print("モーター温度　");
+  Serial.print("モーター温度 ");
   if (motorSpeed == 0x00)
   {
-    Serial.println("調整中　0位置");
+    Serial.println("調整中 0位置");
   }
   else
   {
-    Serial.println(motorTemp);
+    Serial.println(motorTemp - 40);
   }
 
   Serial.println("--------------------");
