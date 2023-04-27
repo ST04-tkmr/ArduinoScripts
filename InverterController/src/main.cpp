@@ -17,6 +17,10 @@ mcp2518fd CAN(SPI_CS_PIN); // Set CS pin
 mcp2515_can CAN(SPI_CS_PIN); // Set CS pin
 #endif
 
+void checkMGECU1(void);
+
+void checkMGECU2(void);
+
 unsigned char stmp[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 unsigned char len = 0;
 unsigned char buf[8];
@@ -81,104 +85,7 @@ void loop() {
       //61~63bit
       failureStatus = (buf[7] >> 5) & 0x07;
 
-      Serial.print("shutdownEnable = ");
-      Serial.println(shutdownEnable, BIN);
-      Serial.print("PWM = ");
-      Serial.println(PWM, BIN);
-      Serial.print("WorkingStatus = ");
-      Serial.println(workingStatus, BIN);
-      Serial.print("motorSpeed = ");
-      Serial.println(motorSpeed, BIN);
-      Serial.print("motorPhaseCurrent = ");
-      Serial.println(motorPhaseCurrent, BIN);
-      Serial.print("inputDCVoltage = ");
-      Serial.println(inputDCVoltage, BIN);
-      Serial.print("failureStatus = ");
-      Serial.println(failureStatus, BIN);
-
-      if (shutdownEnable) {
-        Serial.println("シャットダウン許可有効");
-      } else {
-        Serial.println("シャットダウン許可無効");
-      }
-
-      Serial.print("ゲート駆動状態 ");
-      switch (PWM) {
-        case 0b00:
-          Serial.println("短絡");
-          break;
-        case 0b01:
-          Serial.println("正常　トルクなし");
-          break;
-        case 0b10:
-          Serial.println("正常　制御中");
-          break;
-        default:
-          Serial.println("error");
-          break;
-      }
-
-      Serial.print("制御状態 ");
-      switch (workingStatus) {
-        case 0b000:
-          Serial.println("初期状態");
-          break;
-        case 0b001:
-          Serial.println("プリチャージ中");
-          break;
-        case 0b010:
-          Serial.println("スタンバイ");
-          break;
-        case 0b011:
-          Serial.println("トルク制御中");
-          break;
-        case 0b111:
-          Serial.println("急速放電中");
-          break;
-        default:
-          Serial.println("error");
-          break;
-      }
-
-      Serial.print("モータ回転数 ");
-      if (motorSpeed == 0x00) {
-        Serial.println("調整中　0位置");
-      } else {
-        Serial.println(motorSpeed);
-      }
-
-      Serial.print("モータ相電流 ");
-      if (motorPhaseCurrent == 0x00) {
-        Serial.println("調整中　0位置");
-      } else {
-        Serial.println(motorPhaseCurrent);
-      }
-
-      Serial.print("入力直流電圧 ");
-      if (inputDCVoltage == 0x00) {
-        Serial.println("調整中　0位置");
-      } else {
-        Serial.println(inputDCVoltage);
-      }
-
-      Serial.print("異常状態 ");
-      switch (failureStatus) {
-        case 0b000:
-          Serial.println("エラーなし");
-          break;
-        case 0b001:
-          Serial.println("負荷軽減");
-          break;
-        case 0b010:
-          Serial.println("警告");
-          break;
-        case 0b101:
-          Serial.println("クリティカルエラー");
-          break;
-        default:
-          Serial.println("error");
-          break;
-      }
+      checkMGECU1();
     }
 
     //MG-ECU_2
@@ -238,4 +145,109 @@ void loop() {
   Serial.println("--------------------");
   Serial.println();
   delay(1000);
+}
+
+void checkMGECU1(void) {
+  Serial.print("shutdownEnable = ");
+  Serial.println(shutdownEnable, BIN);
+  Serial.print("PWM = ");
+  Serial.println(PWM, BIN);
+  Serial.print("WorkingStatus = ");
+  Serial.println(workingStatus, BIN);
+  Serial.print("motorSpeed = ");
+  Serial.println(motorSpeed, BIN);
+  Serial.print("motorPhaseCurrent = ");
+  Serial.println(motorPhaseCurrent, BIN);
+  Serial.print("inputDCVoltage = ");
+  Serial.println(inputDCVoltage, BIN);
+  Serial.print("failureStatus = ");
+  Serial.println(failureStatus, BIN);
+
+  if (shutdownEnable) {
+    Serial.println("シャットダウン許可有効");
+  } else {
+    Serial.println("シャットダウン許可無効");
+  }
+
+  Serial.print("ゲート駆動状態 ");
+  switch (PWM) {
+    case 0b00:
+      Serial.println("短絡");
+      break;
+    case 0b01:
+      Serial.println("正常　トルクなし");
+      break;
+    case 0b10:
+      Serial.println("正常　制御中");
+      break;
+    default:
+      Serial.println("error");
+      break;
+  }
+
+  Serial.print("制御状態 ");
+  switch (workingStatus) {
+    case 0b000:
+      Serial.println("初期状態");
+      break;
+    case 0b001:
+      Serial.println("プリチャージ中");
+      break;
+    case 0b010:
+      Serial.println("スタンバイ");
+      break;
+    case 0b011:
+      Serial.println("トルク制御中");
+      break;
+    case 0b111:
+      Serial.println("急速放電中");
+      break;
+    default:
+      Serial.println("error");
+      break;
+  }
+
+  Serial.print("モータ回転数 ");
+  if (motorSpeed == 0x00) {
+    Serial.println("調整中　0位置");
+  } else {
+    Serial.println(motorSpeed);
+  }
+
+  Serial.print("モータ相電流 ");
+  if (motorPhaseCurrent == 0x00) {
+    Serial.println("調整中　0位置");
+  } else {
+    Serial.println(motorPhaseCurrent);
+  }
+
+  Serial.print("入力直流電圧 ");
+  if (inputDCVoltage == 0x00) {
+    Serial.println("調整中　0位置");
+  } else {
+    Serial.println(inputDCVoltage);
+  }
+
+  Serial.print("異常状態 ");
+  switch (failureStatus) {
+    case 0b000:
+      Serial.println("エラーなし");
+      break;
+    case 0b001:
+      Serial.println("負荷軽減");
+      break;
+    case 0b010:
+      Serial.println("警告");
+      break;
+    case 0b101:
+      Serial.println("クリティカルエラー");
+      break;
+    default:
+      Serial.println("error");
+      break;
+  }
+}
+
+void checkMGECU2(void) {
+
 }
