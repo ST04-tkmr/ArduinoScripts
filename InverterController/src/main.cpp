@@ -5,13 +5,16 @@ void checkMGECU1(void);
 
 void checkMGECU2(void);
 
-unsigned char stmp[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+unsigned char stmp[8] = {0, 0, 0, 0, 0, 0, 0, 1};
 unsigned char len = 0;
 unsigned char buf[8];
 volatile unsigned long canId;
+volatile unsigned short requestTorque = 1;  //-1000~1000
+
 // MG-ECU_1
 volatile unsigned char shutdownEnable, PWM, workingStatus, failureStatus;
 volatile unsigned short motorSpeed, motorPhaseCurrent, inputDCVoltage;
+
 // MG-ECU_2
 volatile unsigned char inverterTemp, motorTemp;
 volatile unsigned short maxMotorTorque, maxGenerateTorque;
@@ -29,9 +32,13 @@ void setup()
 
 void loop()
 {
-  CAN.sendMsgBuf(0x301, 0, 8, stmp);
+  if (motorSpeed >= 100) {
+    requestTorque = 0;
+  }
 
-  // delay(500);
+  stmp[1] = requestTorque & 0xFF;
+  stmp[2] = (requestTorque >> 8) & 0x0F;
+  CAN.sendMsgBuf(0x301, 0, 8, stmp);
 
   if (CAN_MSGAVAIL == CAN.checkReceive())
   {
