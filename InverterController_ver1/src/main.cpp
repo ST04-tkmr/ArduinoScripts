@@ -21,31 +21,32 @@ void checkBuf(void)
     for (int j=7; j>=0; j--)
     {
 
-      Serial.print("");
     }
   }
+
+  Serial.println("-----------------------");
 }
 
 void checkMGECU1(void)
 {
-  Serial.println("-------MGECU1-------");
+  Serial.println("----------MGECU1----------");
 
   Serial.print("shutdownEnable = ");
-  Serial.println(MGECU1::msg.shutdownEnable, BIN);
+  Serial.println(MGECU1::msg.getShutdownEnable(), BIN);
   Serial.print("PWM = ");
-  Serial.println(MGECU1::msg.PWM, BIN);
+  Serial.println(MGECU1::msg.getPWM(), BIN);
   Serial.print("WorkingStatus = ");
-  Serial.println(MGECU1::msg.workingStatus, BIN);
+  Serial.println(MGECU1::msg.getWorkingStatus(), BIN);
   Serial.print("motorSpeed = ");
-  Serial.println(MGECU1::msg.motorSpeed, BIN);
+  Serial.println(MGECU1::msg.getMotorSpeed(), BIN);
   Serial.print("motorPhaseCurrent = ");
-  Serial.println(MGECU1::msg.motorPhaseCurrent, BIN);
+  Serial.println(MGECU1::msg.getMotorPhaseCurrent(), BIN);
   Serial.print("inputDCVoltage = ");
-  Serial.println(MGECU1::msg.inputDCVoltage, BIN);
+  Serial.println(MGECU1::msg.getInputDCVoltage(), BIN);
   Serial.print("failureStatus = ");
-  Serial.println(MGECU1::msg.failureStatus, BIN);
+  Serial.println(MGECU1::msg.getFailureStatus(), BIN);
 
-  if (MGECU1::msg.shutdownEnable)
+  if (MGECU1::msg.getShutdownEnable())
   {
     Serial.println("シャットダウン許可有効");
   }
@@ -55,7 +56,7 @@ void checkMGECU1(void)
   }
 
   Serial.print("ゲート駆動状態 ");
-  switch (MGECU1::msg.PWM)
+  switch (MGECU1::msg.getPWM())
   {
   case 0b00:
     Serial.println("短絡");
@@ -72,7 +73,7 @@ void checkMGECU1(void)
   }
 
   Serial.print("制御状態 ");
-  switch (MGECU1::msg.workingStatus)
+  switch (MGECU1::msg.getWorkingStatus())
   {
   case 0b000:
     Serial.println("初期状態");
@@ -95,37 +96,37 @@ void checkMGECU1(void)
   }
 
   Serial.print("モータ回転数 ");
-  if (MGECU1::msg.motorSpeed == 0x00)
+  if (MGECU1::msg.getMotorSpeed() == 0x00)
   {
     Serial.println("調整中 0位置");
   }
   else
   {
-    Serial.println(MGECU1::msg.motorSpeed - 14000);
+    Serial.println(MGECU1::msg.getMotorSpeed() - 14000);
   }
 
   Serial.print("モータ相電流 ");
-  if (MGECU1::msg.motorPhaseCurrent == 0x00)
+  if (MGECU1::msg.getMotorPhaseCurrent() == 0x00)
   {
     Serial.println("調整中 0位置");
   }
   else
   {
-    Serial.println(MGECU1::msg.motorPhaseCurrent);
+    Serial.println(MGECU1::msg.getMotorPhaseCurrent());
   }
 
   Serial.print("入力直流電圧 ");
-  if (MGECU1::msg.inputDCVoltage == 0x00)
+  if (MGECU1::msg.getInputDCVoltage() == 0x00)
   {
     Serial.println("調整中 0位置");
   }
   else
   {
-    Serial.println(MGECU1::msg.inputDCVoltage);
+    Serial.println(MGECU1::msg.getInputDCVoltage());
   }
 
   Serial.print("異常状態 ");
-  switch (MGECU1::msg.failureStatus)
+  switch (MGECU1::msg.getFailureStatus())
   {
   case 0b000:
     Serial.println("エラーなし");
@@ -144,63 +145,63 @@ void checkMGECU1(void)
     break;
   }
 
-  Serial.println("--------------------");
+  Serial.println("--------------------------");
   Serial.println();
 }
 
 void checkMGECU2(void)
 {
-  Serial.println("-------MGECU2-------");
+  Serial.println("----------MGECU2----------");
 
   Serial.print("inverterTemp = ");
-  Serial.println(MGECU2::msg.inverterTemp, BIN);
+  Serial.println(MGECU2::msg.getInverterTemp(), BIN);
   Serial.print("maxMotorTorque = ");
-  Serial.println(MGECU2::msg.maxAvailableMotorTorque, BIN);
+  Serial.println(MGECU2::msg.getMaxAvailableMotorTorque(), BIN);
   Serial.print("maxGenerateTorque = ");
-  Serial.println(MGECU2::msg.maxAvailableGenerateTorque, BIN);
+  Serial.println(MGECU2::msg.getMaxAvailableGenerateTorque(), BIN);
   Serial.print("motorTemp = ");
-  Serial.println(MGECU2::msg.motorTemp, BIN);
+  Serial.println(MGECU2::msg.getMotorTemp(), BIN);
 
   Serial.print("インバータ温度 ");
-  if (MGECU1::msg.motorSpeed == 0x00)
+  if (MGECU1::msg.getMotorSpeed() == 0x00)
   {
     Serial.println("調整中 0位置");
   }
   else
   {
-    Serial.println(MGECU2::msg.inverterTemp - 40);
+    Serial.println(MGECU2::msg.getInverterTemp() - 40);
   }
 
   Serial.print("モーター上限制限トルク ");
-  if (MGECU1::msg.motorSpeed == 0x00)
+  if (MGECU1::msg.getMotorSpeed() == 0x00)
   {
     Serial.println("調整中 0位置");
   }
   else
   {
-    Serial.println(MGECU2::msg.maxAvailableMotorTorque);
+    Serial.println(MGECU2::msg.getMaxAvailableMotorTorque());
   }
 
   Serial.print("モーター下限制限トルク ");
-  if (MGECU1::msg.motorSpeed == 0x00)
+  if (MGECU1::msg.getMotorSpeed() == 0x00)
   {
     Serial.print("調整中 0位置");
   }
   else
   {
-    Serial.println(MGECU2::msg.maxAvailableGenerateTorque - 1000);
+    Serial.println(MGECU2::msg.getMaxAvailableGenerateTorque() - 1000);
   }
 
   Serial.print("モーター温度 ");
-  if (MGECU1::msg.motorSpeed == 0x00)
+  if (MGECU1::msg.getMotorSpeed() == 0x00)
   {
     Serial.println("調整中 0位置");
   }
   else
   {
-    Serial.println(MGECU2::msg.motorTemp - 40);
+    Serial.println(MGECU2::msg.getMotorTemp() - 40);
   }
 
-  Serial.println("--------------------");
+  Serial.println("--------------------------");
   Serial.println();
 }

@@ -50,9 +50,9 @@ namespace Inverter
             }
 
             //Massage取得, 指定したインデックスが0~7以外の時は0を返す
-            inline uint8_t getMsgVal(uint8_t index)
+            inline uint8_t getMsgByte(uint8_t index)
             {
-                if (0 <= index && index < 8)
+                if (0 <= index && index <= 7)
                 {
                     return msgs[index];
                 }
@@ -111,6 +111,27 @@ namespace Inverter
                 reserve1 = 0x3FF;
                 failureStatus = 0x0;
             }
+
+            //Massage取得, 指定したインデックスが0~7以外の時は0を返す
+            inline uint8_t getMsgByte(uint8_t index)
+            {
+                if (0 <= index && index <= 7)
+                {
+                    return msgs[index];
+                }
+                else
+                {
+                    return 0;
+                }
+            };
+
+            inline uint8_t getShutdownEnable() { return shutdownEnable; };
+            inline uint8_t getPWM() { return PWM; };
+            inline uint8_t getWorkingStatus() { return workingStatus; };
+            inline uint16_t getMotorSpeed() { return motorSpeed; };
+            inline uint16_t getMotorPhaseCurrent() { return motorPhaseCurrent; };
+            inline uint16_t getInputDCVoltage() { return inputDCVoltage; };
+            inline uint8_t getFailureStatus() { return failureStatus; };
         };
 
         MSG msg = MSG();
@@ -154,6 +175,24 @@ namespace Inverter
                 maxAvailableGenerateTorque = 0x7D0;
                 motorTemp = 0x3C;
             }
+
+            //Massage取得, 指定したインデックスが0~7以外の時は0を返す
+            inline uint8_t getMsgByte(uint8_t index)
+            {
+                if (0 <= index && index <= 7)
+                {
+                    return msgs[index];
+                }
+                else
+                {
+                    return 0;
+                }
+            };
+
+            inline uint8_t getInverterTemp() { return inverterTemp; };
+            inline uint16_t getMaxAvailableMotorTorque() { return maxAvailableMotorTorque; };
+            inline uint16_t getMaxAvailableGenerateTorque() { return maxAvailableGenerateTorque; };
+            inline uint8_t getMotorTemp() { return motorTemp; };
         };
 
         MSG msg = MSG();
