@@ -9,7 +9,7 @@ unsigned char stmp[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 unsigned char len = 0;
 unsigned char buf[8];
 volatile unsigned long canId;
-volatile unsigned short requestTorque = 1;  //-1000~1000
+volatile unsigned short requestTorque = 1; //-1000~1000
 
 // MG-ECU_1
 volatile unsigned char shutdownEnable, PWM, workingStatus, failureStatus;
@@ -32,12 +32,13 @@ void setup()
 
 void loop()
 {
-  if (motorSpeed >= 100) {
+  if (motorSpeed >= 500)
+  {
     requestTorque = 0;
   }
 
-  //stmp[1] = requestTorque & 0xFF;
-  //stmp[2] = (requestTorque >> 8) & 0x0F;
+  // stmp[1] = requestTorque & 0xFF;
+  // stmp[2] = (requestTorque >> 8) & 0x0F;
   CAN.sendMsgBuf(0x301, 0, 8, stmp);
 
   if (CAN_MSGAVAIL == CAN.checkReceive())

@@ -12,27 +12,28 @@
 #define THM4 (6)
 #define THM5 (7)
 
-const unsigned char thmNum = 6;  //サーミスタ本数
-volatile Thermistor* thm_p = new Thermistor[thmNum]; //配列のポインタ
-volatile float maxTemp, minTemp, avrTemp; //最高, 最低, 平均温度
+const unsigned char thmNum = 6;                      // サーミスタ本数
+volatile Thermistor *thm_p = new Thermistor[thmNum]; // 配列のポインタ
+volatile float maxTemp, minTemp, avrTemp;            // 最高, 最低, 平均温度
 const float allowableMaxTemp = 60.0f;
 const float allowableMinTemp = 0.0f;
 
-//キャリブレーション
+// キャリブレーション
 void calibrate(unsigned int time);
 
-//データ送信
+// データ送信
 void sendData(void);
 
-//シリアルモニタで温度確認
-//シリアルモニタを使わないときはi2cの邪魔をするので実行しない
+// シリアルモニタで温度確認
+// シリアルモニタを使わないときはi2cの邪魔をするので実行しない
 void checkTemp(void);
 
-//サーミスタにかかる電圧を読んで値をセット
+// サーミスタにかかる電圧を読んで値をセット
 void readThmVoltage(void);
 
-void setup() {
-  //ピンモード設定
+void setup()
+{
+  // ピンモード設定
   pinMode(THM0, INPUT);
   pinMode(THM1, INPUT);
   pinMode(THM2, INPUT);
@@ -40,33 +41,35 @@ void setup() {
   pinMode(THM4, INPUT);
   pinMode(THM5, INPUT);
 
-  //シリアル通信開始
+  // シリアル通信開始
   Wire.begin(ADRS);
   Wire.onRequest(sendData);
 }
 
-void loop() {
-
+void loop()
+{
 }
 
-void calibrate(unsigned int time) {
-  while (millis() < time) {
+void calibrate(unsigned int time)
+{
+  while (millis() < time)
+  {
     readThmVoltage();
 
     delay(1);
   }
 }
 
-void sendData(void) {
-
+void sendData(void)
+{
 }
 
-void checkTemp(void) {
-
+void checkTemp(void)
+{
 }
 
-void readThmVoltage(void) {
+void readThmVoltage(void)
+{
   thm_p->setVal(analogRead(THM0));
   (thm_p + 1)->setVal(analogRead(THM1));
-
 }

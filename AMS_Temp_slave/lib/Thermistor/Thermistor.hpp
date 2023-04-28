@@ -35,15 +35,16 @@
 //-------------------------------------------------------
 //  型定義
 //-------------------------------------------------------
-//サーミスタのパラメータ
-//アナログピンで読み取った値と算出したサーミスタの情報を格納する
-class Thermistor {
-    private:
-    volatile int val;   //アナログピンで読み取った値
-    volatile float r;   //抵抗値
-    volatile float temp;    //抵抗値から計算した温度
+// サーミスタのパラメータ
+// アナログピンで読み取った値と算出したサーミスタの情報を格納する
+class Thermistor
+{
+private:
+    volatile int val;    // アナログピンで読み取った値
+    volatile float r;    // 抵抗値
+    volatile float temp; // 抵抗値から計算した温度
 
-    public:
+public:
     Thermistor();
 
     //-------------------------------------------------------
@@ -63,25 +64,28 @@ class Thermistor {
     //  引数：アナログピンで読み取った値(analogReadの戻り値0~1023)
     //  戻り値：サーミスタの抵抗値
     //-------------------------------------------------------
-    float calcR(int val);
+    float calcR(int val) volatile;
 
     //-------------------------------------------------------
     //  抵抗から温度計算
     //  引数：サーミスタの抵抗値
     //  戻り値：サーミスタの温度
     //-------------------------------------------------------
-    float calcTemp(float r);
+    float calcTemp(float r) volatile;
 };
 
-inline int Thermistor::getVal() {
+inline int Thermistor::getVal()
+{
     return val;
 }
 
-inline float Thermistor::getR() {
+inline float Thermistor::getR()
+{
     return r;
 }
 
-inline float Thermistor::getTemp() {
+inline float Thermistor::getTemp()
+{
     return temp;
 }
 
