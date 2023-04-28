@@ -21,6 +21,8 @@ mcp2515_can CAN(SPI_CS_PIN); // Set CS pin
 
 namespace Inverter
 {
+    volatile unsigned char buf[8];
+
     namespace EV_ECU1
     {
         volatile unsigned char ecuEnable;   //MG-ECU実行要求

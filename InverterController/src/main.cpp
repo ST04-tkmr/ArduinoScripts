@@ -128,6 +128,10 @@ void loop()
   delay(1000);
 }
 
+void checkBuf(void) {
+
+}
+
 void checkMGECU1(void)
 {
   Serial.println("-------MGECU1-------");
