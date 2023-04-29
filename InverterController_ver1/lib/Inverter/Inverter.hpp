@@ -65,6 +65,45 @@ namespace Inverter
             inline uint8_t getEcuEnable() { return ecuEnable; };
             inline uint8_t getDischargeCommand() { return dischargeCommand; };
             inline uint8_t getRequestTorque() { return requestTorque; };
+
+            inline uint8_t setEcuEnable(uint8_t ecuEnable)
+            {
+                if (ecuEnable == 0 || ecuEnable == 1)
+                {
+                    this->ecuEnable = ecuEnable;
+                    return 1;
+                }
+                else
+                {
+                    return 0;
+                }
+            };
+
+            inline uint8_t setDischargeCommand(uint8_t dischargeCommand)
+            {
+                if (dischargeCommand == 0 || dischargeCommand == 1)
+                {
+                    this->dischargeCommand = dischargeCommand;
+                    return 1;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+
+            inline uint8_t setRequestTorque(uint16_t requestTorque)
+            {
+                if (0 <= requestTorque && requestTorque <= 4000)
+                {
+                    this->requestTorque = requestTorque;
+                    return 1;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
         };
 
         MSG msg = MSG();
