@@ -1,269 +1,206 @@
-#ifndef INVERTER
-#define INVERTER
+#ifndef _INVERTER_H_
+#define _INVERTER_H_
 
-#include <SPI.h>
-#define CAN_2515
-#if defined(SEEED_WIO_TERMINAL) && defined(CAN_2518FD)
-const int SPI_CS_PIN = BCM8;
-const int CAN_INT_PIN = BCM25;
-#else
-const int SPI_CS_PIN = 9;
-const int CAN_INT_PIN = 2;
-#endif
-#ifdef CAN_2518FD
-#include "mcp2518fd_can.h"
-mcp2518fd CAN(SPI_CS_PIN); // Set CS pin
-#endif
-#ifdef CAN_2515
-#include "mcp2515_can.h"
-mcp2515_can CAN(SPI_CS_PIN); // Set CS pin
-#endif
-
-namespace Inverter
+/**
+ * Parameter for changing massage to physical
+ * offset, resolution, physical(minPhysical~maxPhysical)
+ */
+class Parameter
 {
-    uint8_t stmp[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-    uint8_t buf[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+private:
+    unsigned short offset;
+    float resolution;
+    unsigned short minPhysical, maxPhysical;
 
-    namespace EV_ECU1
+public:
+    Parameter(unsigned short offset, float resolution, unsigned short minPhysical, unsigned short maxPhysical);
+
+    inline unsigned short getOffset() { return offset; };
+    inline float getResolution() { return resolution; };
+    inline unsigned short getMinPhysical() { return minPhysical; };
+    inline unsigned short getMaxPhysical() { return maxPhysical; };
+    inline float calcPhysical(unsigned short normal) { return (normal * resolution) + offset; };
+    inline unsigned short calcNormal(float physicalValue) { return static_cast<unsigned short>((physicalValue - offset) / resolution); };
+};
+
+namespace EV_ECU1
+{
+    union MSG // CAN Massage
     {
-        const uint16_t id = 0x301;
-
-        union MSG
+        unsigned char msgs[8];
+        struct
         {
-        private:
-            uint8_t msgs[8];
-            struct
-            {
-                uint8_t ecuEnable : 1;        // MG-ECU実行要求
-                uint8_t dischargeCommand : 1; // 平滑コンデンサ放電要求
-                uint8_t reserve0 : 6;
-                uint16_t requestTorque : 12; // HV-ECU要求トルク Range 0~4000
-            };
-
-        public:
-            MSG()
-            {
-                ecuEnable = 0x0;
-                dischargeCommand = 0x0;
-                reserve0 = 0x0;
-                requestTorque = 0x7D0;
-            }
-
-            //Massage取得, 指定したインデックスが0~7以外の時は0を返す
-            inline uint8_t getMsgByte(uint8_t index)
-            {
-                if (0 <= index && index <= 7)
-                {
-                    return msgs[index];
-                }
-                else
-                {
-                    return 0;
-                }
-            };
-
-            inline uint8_t getEcuEnable() { return ecuEnable; };
-            inline uint8_t getDischargeCommand() { return dischargeCommand; };
-            inline uint8_t getRequestTorque() { return requestTorque; };
-
-            inline uint8_t setEcuEnable(uint8_t ecuEnable)
-            {
-                if (ecuEnable == 0 || ecuEnable == 1)
-                {
-                    this->ecuEnable = ecuEnable;
-                    return 1;
-                }
-                else
-                {
-                    return 0;
-                }
-            };
-
-            inline uint8_t setDischargeCommand(uint8_t dischargeCommand)
-            {
-                if (dischargeCommand == 0 || dischargeCommand == 1)
-                {
-                    this->dischargeCommand = dischargeCommand;
-                    return 1;
-                }
-                else
-                {
-                    return 0;
-                }
-            }
-
-            inline uint8_t setRequestTorque(uint16_t requestTorque)
-            {
-                if (0 <= requestTorque && requestTorque <= 4000)
-                {
-                    this->requestTorque = requestTorque;
-                    return 1;
-                }
-                else
-                {
-                    return 0;
-                }
-            }
+            unsigned char ecuEnable : 1;        // MG-ECU実行要求
+            unsigned char dischargeCommand : 1; // 平滑コンデンサ放電要求
+            unsigned char reserve0 : 6;
+            unsigned short requestTorque : 12; // HV-ECU要求トルク Range 0~4000
         };
 
-        MSG msg = MSG();
+        MSG();
+    };
 
-        namespace TorqueRequest // HV-ECU要求トルク
-        {
-            const int16_t offset = -1000;
-            const float resolution = 0.5f; // 0.5Nm
-            float physical = 0;            // Physical Range -1000~1000
-        }
-    }
-
-    namespace MG_ECU1
+    class ECU
     {
-        const uint16_t id = 0x311;
+    private:
+        const unsigned short id;
+        union MSG *msg;
+        Parameter *torqueRequestPara; // HV-ECU要求トルク
 
-        union MSG
-        {
-        private:
-            uint8_t msgs[8];
-            struct
-            {
-                uint8_t shutdownEnable : 1; // MG_ECUシャットダウン許可
-                uint8_t PWM : 2;            // ゲート駆動状態
-                uint8_t workingStatus : 3;  // 制御状態
-                uint8_t reserve0 : 2;
-                uint16_t motorSpeed;             // モータ回転数 Range 0~28000
-                uint16_t motorPhaseCurrent : 10; // モータ相電流 Range 0~1000
-                uint16_t inputDCVoltage : 10;    // 入力直流電圧 Range 0~500
-                uint32_t reserve1 : 19;
-                uint8_t failureStatus : 3; // 異常状態
-            };
+    public:
+        ECU(unsigned short id);
+        ~ECU();
 
-        public:
-            MSG()
-            {
-                shutdownEnable = 0x0;
-                PWM = 0x1;
-                workingStatus = 0x0;
-                reserve0 = 0x0;
-                motorSpeed = 0x36B0;
-                motorPhaseCurrent = 0x0;
-                inputDCVoltage = 0x3FF;
-                reserve1 = 0x3FF;
-                failureStatus = 0x0;
-            }
+        // Massage取得, 指定したインデックスが0~7以外の時は0を返す
+        unsigned char getMsgByte(unsigned char index);
 
-            //Massage取得, 指定したインデックスが0~7以外の時は0を返す
-            inline uint8_t getMsgByte(uint8_t index)
-            {
-                if (0 <= index && index <= 7)
-                {
-                    return msgs[index];
-                }
-                else
-                {
-                    return 0;
-                }
-            };
+        inline unsigned char getEcuEnable() { return msg->ecuEnable; };
+        inline unsigned char getDischargeCommand() { return msg->dischargeCommand; };
 
-            inline uint8_t getShutdownEnable() { return shutdownEnable; };
-            inline uint8_t getPWM() { return PWM; };
-            inline uint8_t getWorkingStatus() { return workingStatus; };
-            inline uint16_t getMotorSpeed() { return motorSpeed; };
-            inline uint16_t getMotorPhaseCurrent() { return motorPhaseCurrent; };
-            inline uint16_t getInputDCVoltage() { return inputDCVoltage; };
-            inline uint8_t getFailureStatus() { return failureStatus; };
-        };
+        // 戻り値はPhysical Value
+        inline float getRequestTorque() { return torqueRequestPara->calcPhysical(msg->requestTorque); };
 
-        MSG msg = MSG();
+        // 戻り値はNormal Value
+        inline unsigned short getNormalRequestTorque() { return msg->requestTorque; };
 
-        namespace MotorSpeed // モータ回転数
-        {
-            const int16_t offset = -14000;
-            const int16_t resolution = 1; // 1rpm
-            int16_t physical = 0;         // Physical Range -14000~14000
-        }
+        // ecuEnable = 0 or 1
+        unsigned char setEcuEnable(unsigned char ecuEnable);
 
-        namespace MotorPhaseCurrent // モータ相電流
-        {
-            const int16_t offset = 0;
-            const float resolution = 0.5f; // 0.5Arms
-            float physical = 0;            // Physical Range 0~500
-        }
-    }
+        // dischargeCommand = 0 or 1
+        unsigned char setDischargeCommand(unsigned char dischargeCommand);
 
-    namespace MG_ECU2
-    {
-        const uint16_t id = 0x321;
-
-        union MSG
-        {
-        private:
-            uint8_t msgs[8];
-            struct
-            {
-                uint8_t inverterTemp;                     // インバータ温度
-                uint16_t maxAvailableMotorTorque : 12;    // モータ上限制限トルク
-                uint16_t maxAvailableGenerateTorque : 12; // モータ下限制限トルク
-                uint8_t motorTemp;                        // モータ温度
-            };
-
-        public:
-            MSG()
-            {
-                inverterTemp = 0x3C;
-                maxAvailableMotorTorque = 0x0;
-                maxAvailableGenerateTorque = 0x7D0;
-                motorTemp = 0x3C;
-            }
-
-            //Massage取得, 指定したインデックスが0~7以外の時は0を返す
-            inline uint8_t getMsgByte(uint8_t index)
-            {
-                if (0 <= index && index <= 7)
-                {
-                    return msgs[index];
-                }
-                else
-                {
-                    return 0;
-                }
-            };
-
-            inline uint8_t getInverterTemp() { return inverterTemp; };
-            inline uint16_t getMaxAvailableMotorTorque() { return maxAvailableMotorTorque; };
-            inline uint16_t getMaxAvailableGenerateTorque() { return maxAvailableGenerateTorque; };
-            inline uint8_t getMotorTemp() { return motorTemp; };
-        };
-
-        MSG msg = MSG();
-
-        namespace InverterTemperature
-        {
-            const int8_t offset = -40;
-            const int8_t resolution = 1; // 1℃
-            int8_t physical = 20;        // Physical Range -40~210
-        }
-
-        namespace MaximumAvailableMotoringTorque
-        {
-            const uint16_t offset = 0;
-            const float resolution = 0.5f; // 0.5Nm
-            uint16_t Physical = 0;         // Physical Range 0~1000
-        }
-
-        namespace MaximumAvailableGeneratingTorque
-        {
-            const int16_t offset = -1000;
-            const float resolution = 0.5f; // 0.5Nm
-            int16_t Physical = 0;          // Physical Range -1000~0
-        }
-
-        namespace MotorTemperature
-        {
-            const int8_t offset = -40;
-            const int8_t resolution = 1;
-            int8_t Physical = 20;
-        }
-    }
+        /**
+         * 要求トルクをセット
+         * -1000 <= physicalValue <= 1000
+         */
+        unsigned char setRequestTorque(float physicalValue);
+    };
 }
+
+namespace MG_ECU1
+{
+    union MSG // CAN Massage
+    {
+        unsigned char msgs[8];
+        struct
+        {
+            unsigned char shutdownEnable : 1; // MG_ECUシャットダウン許可
+            unsigned char PWM : 2;            // ゲート駆動状態
+            unsigned char workingStatus : 3;  // 制御状態
+            unsigned char reserve0 : 2;
+            unsigned short motorSpeed;             // モータ回転数 Range 0~28000
+            unsigned short motorPhaseCurrent : 10; // モータ相電流 Range 0~1000
+            unsigned short inputDCVoltage : 10;    // 入力直流電圧 Range 0~500
+            unsigned long reserve1 : 19;
+            unsigned char failureStatus : 3; // 異常状態
+        };
+
+        MSG();
+    };
+
+    class ECU
+    {
+    private:
+        const unsigned short id;
+        union MSG *msg;
+        Parameter *motorSpeedPara;        // モータ回転数
+        Parameter *motorPhaseCurrentPara; // モータ相電流
+
+    public:
+        ECU(unsigned short id);
+        ~ECU();
+
+        // Massage取得, 指定したインデックスが0~7以外の時は0を返す
+        unsigned char getMsgByte(unsigned char index);
+
+        inline unsigned char getShutdownEnable() { return msg->shutdownEnable; };
+        inline unsigned char getPWM() { return msg->PWM; };
+        inline unsigned char getWorkingStatus() { return msg->workingStatus; };
+
+        // 戻り値はPhysical Value
+        inline float getMotorSpeed() { return motorSpeedPara->calcPhysical(msg->motorSpeed); };
+
+        // 戻り値はNormal Value
+        inline unsigned short getNormalMotorSpeed() { return msg->motorSpeed; };
+
+        // 戻り値はPhysical Value
+        inline float getMotorPhaseCurrent() { return motorPhaseCurrentPara->calcPhysical(msg->motorPhaseCurrent); };
+
+        // 戻り値はNormal Value
+        inline unsigned short getNormalMotorPhaseCurrent() { return msg->motorPhaseCurrent; };
+
+        inline unsigned short getInputDCVoltage() { return msg->inputDCVoltage; };
+        inline unsigned char getFailureStatus() { return msg->failureStatus; };
+
+        // 各パラメータの状態をシリアルモニタでチェック
+        void checkMGECU1();
+    };
+}
+
+namespace MG_ECU2
+{
+    union MSG // Can Massage
+    {
+        unsigned char msgs[8];
+        struct
+        {
+            unsigned char inverterTemp;                     // インバータ温度
+            unsigned short maxAvailableMotorTorque : 12;    // モータ上限制限トルク
+            unsigned short maxAvailableGenerateTorque : 12; // モータ下限制限トルク
+            unsigned char motorTemp;                        // モータ温度
+        };
+
+        MSG();
+    };
+
+    class ECU
+    {
+    private:
+        const unsigned short id;
+        union MSG *msg;
+        Parameter *inverterTemperaturePara;              // インバータ温度
+        Parameter *maximumAvailableMotoringTorquePara;   // モータ上限制限トルク
+        Parameter *maximumAvailableGeneratingTorquePara; // モータ下限制限トルク
+        Parameter *motorTemperaturePara;                 // モータ温度
+
+    public:
+        ECU(unsigned short id);
+        ~ECU();
+
+        // Massage取得, 指定したインデックスが0~7以外の時は0を返す
+        unsigned char getMsgByte(unsigned char index);
+
+        // 戻り値はPhysical Value
+        inline float getInverterTemp() { return inverterTemperaturePara->calcPhysical(msg->inverterTemp); };
+
+        // 戻り値はNormal Value
+        inline unsigned char getNormalInverterTemp() { return msg->inverterTemp; };
+
+        // 戻り値はPhysical Value
+        inline float getMaxAvailableMotorTorque() { return maximumAvailableMotoringTorquePara->calcPhysical(msg->maxAvailableMotorTorque); };
+
+        // 戻り値はNormal Value
+        inline unsigned short getNormalMaxAvailableMotorTorque() { return msg->maxAvailableMotorTorque; };
+
+        // 戻り値はPhysical Value
+        inline float getMaxAvailableGenerateTorque() { return maximumAvailableGeneratingTorquePara->calcPhysical(msg->maxAvailableGenerateTorque); };
+
+        // 戻り値はNormal Value
+        inline unsigned short getNormalMaxAvailableGenerateTorque() { return msg->maxAvailableGenerateTorque; };
+
+        // 戻り値はPhysical Value
+        inline float getMotorTemp() { return motorTemperaturePara->calcPhysical(msg->motorTemp); };
+
+        // 戻り値はNormal Value
+        inline unsigned char getNormalMotorTemp() { return msg->motorTemp; };
+
+        // 各パラメータの状態をシリアルモニタでチェック
+        void checkMGECU2();
+    };
+}
+
+
+void init_CAN(void);
+
+
 
 #endif
