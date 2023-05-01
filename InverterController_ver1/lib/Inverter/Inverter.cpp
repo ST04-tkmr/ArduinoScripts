@@ -1,4 +1,5 @@
 #include "Inverter.hpp"
+#include "Inverter_dfs.hpp"
 
 #include <SPI.h>
 #define CAN_2515
@@ -121,6 +122,16 @@ unsigned char MG_ECU1::ECU::getMsgByte(unsigned char index)
     {
         return 0;
     }
+};
+
+unsigned char MG_ECU1::ECU::setMsg(unsigned char *buf)
+{
+    for (int i=0; i<8; i++)
+    {
+        msg->msgs[i] = *(buf + i);
+    }
+
+    return 1;
 };
 
 void MG_ECU1::ECU::checkMGECU1(void)
@@ -279,6 +290,16 @@ unsigned char MG_ECU2::ECU::getMsgByte(unsigned char index)
     }
 };
 
+unsigned char MG_ECU2::ECU::setMsg(unsigned char *buf)
+{
+    for (int i=0; i<8; i++)
+    {
+        msg->msgs[i] = *(buf + i);
+    }
+
+    return 1;
+};
+
 void MG_ECU2::ECU::checkMGECU2(void)
 {
     SERIAL_PORT_MONITOR.println("----------MGECU2----------");
@@ -321,5 +342,53 @@ void init_CAN(void)
 
 unsigned char sendMsgToInverter(EV_ECU1::ECU *ecu)
 {
+    unsigned char buf[8];
 
+    if (ecu->getID() == EV_ECU1_ID)
+    {
+        for (int i=0; i<8; i++)
+        {
+            buf[i] = ecu->getMsgByte(i);
+        }
+
+        CAN.sendMsgBuf(ecu->getID(), 0, 8, buf);
+
+        return 1;
+    }
+    else
+    {
+        SERIAL_PORT_MONITOR.println("send CAN massage fail, please check ID");
+        return 0;
+    }
+};
+
+unsigned long readMsgFromInverter(MG_ECU1::ECU *ecu1, MG_ECU2::ECU *ecu2)
+{
+    unsigned long id;
+    if (CAN_MSGAVAIL == CAN.checkReceive())
+    {
+        unsigned char len = 0;
+        unsigned char buf[8];
+        CAN.readMsgBuf(&len, buf);
+        id = CAN.getCanId();
+
+        if (id == MG_ECU1_ID && ecu1->getID() == MG_ECU1_ID)
+        {
+            ecu1->setMsg(buf);
+            return id;
+        }
+        else if  (id == MG_ECU2_ID && ecu2->getID() == MG_ECU2_ID)
+        {
+            ecu2->setMsg(buf);
+            return id;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        return 0;
+    }
 };

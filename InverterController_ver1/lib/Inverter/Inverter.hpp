@@ -50,6 +50,8 @@ namespace EV_ECU1
         ECU(unsigned long id);
         ~ECU();
 
+        unsigned long getID() { return id; };
+
         // Massage取得, 指定したインデックスが0~7以外の時は0を返す
         unsigned char getMsgByte(unsigned char index);
 
@@ -109,6 +111,8 @@ namespace MG_ECU1
         ECU(unsigned long id);
         ~ECU();
 
+        unsigned long getID() { return id; };
+
         // Massage取得, 指定したインデックスが0~7以外の時は0を返す
         unsigned char getMsgByte(unsigned char index);
 
@@ -130,6 +134,8 @@ namespace MG_ECU1
 
         inline unsigned short getInputDCVoltage() { return msg->inputDCVoltage; };
         inline unsigned char getFailureStatus() { return msg->failureStatus; };
+
+        unsigned char setMsg(unsigned char *buf);
 
         // 各パラメータの状態をシリアルモニタでチェック
         void checkMGECU1();
@@ -166,6 +172,8 @@ namespace MG_ECU2
         ECU(unsigned long id);
         ~ECU();
 
+        unsigned long getID() { return id; };
+
         // Massage取得, 指定したインデックスが0~7以外の時は0を返す
         unsigned char getMsgByte(unsigned char index);
 
@@ -193,13 +201,25 @@ namespace MG_ECU2
         // 戻り値はNormal Value
         inline unsigned char getNormalMotorTemp() { return msg->motorTemp; };
 
+        unsigned char setMsg(unsigned char *buf);
+
         // 各パラメータの状態をシリアルモニタでチェック
         void checkMGECU2();
     };
 }
 
+//CAN通信初期化処理
 void init_CAN(void);
 
-void run_command(unsigned int cmd);
+/**
+ * EV-ECUへMassage送信
+ * 戻り値 : 1(成功) or 0(失敗)
+*/
+unsigned char sendMsgToInverter(EV_ECU1::ECU *ecu);
+
+/**
+ * 受信したMassageを読み取る
+*/
+unsigned long readMsgFromInverter(MG_ECU1::ECU *ecu1, MG_ECU2::ECU *ecu2);
 
 #endif

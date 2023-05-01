@@ -47,7 +47,7 @@ private:
 public:
     static const float r0 = 10000.0f; // 25℃の時のサーミスタの抵抗値
     static const float t0 = 25.0f;    // 基準温度
-    static const float b = 3380.0f;   // B定数
+    static const float b = 3423.0f;   // B定数
     static const float rs = 10000.0f; // サーミスタと直列につなぐ抵抗の値
 
     Thermistor();
