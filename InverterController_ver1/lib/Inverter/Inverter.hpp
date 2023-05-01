@@ -208,18 +208,24 @@ namespace MG_ECU2
     };
 }
 
-//CAN通信初期化処理
+// CAN通信初期化処理
 void init_CAN(void);
 
 /**
  * EV-ECUへMassage送信
  * 戻り値 : 1(成功) or 0(失敗)
-*/
+ */
 unsigned char sendMsgToInverter(EV_ECU1::ECU *ecu);
 
 /**
  * 受信したMassageを読み取る
+ * printFlag = 1 のときID, Buf をシリアルモニタに表示
+ */
+unsigned long readMsgFromInverter(MG_ECU1::ECU *ecu1, MG_ECU2::ECU *ecu2, unsigned char printFlag);
+
+/**
+ * シリアルモニタにbufのビットを全て表示する
 */
-unsigned long readMsgFromInverter(MG_ECU1::ECU *ecu1, MG_ECU2::ECU *ecu2);
+void checkBuf(unsigned char *buf);
 
 #endif

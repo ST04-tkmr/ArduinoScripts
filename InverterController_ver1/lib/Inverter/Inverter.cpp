@@ -126,7 +126,7 @@ unsigned char MG_ECU1::ECU::getMsgByte(unsigned char index)
 
 unsigned char MG_ECU1::ECU::setMsg(unsigned char *buf)
 {
-    for (int i=0; i<8; i++)
+    for (int i = 0; i < 8; i++)
     {
         msg->msgs[i] = *(buf + i);
     }
@@ -292,7 +292,7 @@ unsigned char MG_ECU2::ECU::getMsgByte(unsigned char index)
 
 unsigned char MG_ECU2::ECU::setMsg(unsigned char *buf)
 {
-    for (int i=0; i<8; i++)
+    for (int i = 0; i < 8; i++)
     {
         msg->msgs[i] = *(buf + i);
     }
@@ -346,10 +346,12 @@ unsigned char sendMsgToInverter(EV_ECU1::ECU *ecu)
 
     if (ecu->getID() == EV_ECU1_ID)
     {
-        for (int i=0; i<8; i++)
+        for (int i = 0; i < 8; i++)
         {
             buf[i] = ecu->getMsgByte(i);
         }
+
+        checkBuf(buf);
 
         CAN.sendMsgBuf(ecu->getID(), 0, 8, buf);
 
@@ -362,7 +364,7 @@ unsigned char sendMsgToInverter(EV_ECU1::ECU *ecu)
     }
 };
 
-unsigned long readMsgFromInverter(MG_ECU1::ECU *ecu1, MG_ECU2::ECU *ecu2)
+unsigned long readMsgFromInverter(MG_ECU1::ECU *ecu1, MG_ECU2::ECU *ecu2, unsigned char printFlag)
 {
     if (CAN_MSGAVAIL == CAN.checkReceive())
     {
@@ -371,12 +373,19 @@ unsigned long readMsgFromInverter(MG_ECU1::ECU *ecu1, MG_ECU2::ECU *ecu2)
         CAN.readMsgBuf(&len, buf);
         unsigned long id = CAN.getCanId();
 
+        if (printFlag)
+        {
+            SERIAL_PORT_MONITOR.print("ID = ");
+            SERIAL_PORT_MONITOR.println(id, HEX);
+            checkBuf(buf);
+        }
+
         if (id == ecu1->getID())
         {
             ecu1->setMsg(buf);
             return id;
         }
-        else if  (id == ecu2->getID())
+        else if (id == ecu2->getID())
         {
             ecu2->setMsg(buf);
             return id;
@@ -390,4 +399,25 @@ unsigned long readMsgFromInverter(MG_ECU1::ECU *ecu1, MG_ECU2::ECU *ecu2)
     {
         return 0;
     }
+};
+
+void checkBuf(unsigned char *buf)
+{
+    SERIAL_PORT_MONITOR.println("----------buf----------");
+
+    for (int i = 0; i < 8; i++)
+    {
+        SERIAL_PORT_MONITOR.print("buf");
+        SERIAL_PORT_MONITOR.print(i);
+        SERIAL_PORT_MONITOR.print(" = ");
+        for (int j = 7; j >= 0; j--)
+        {
+            unsigned char bit = (*(buf + i) & (0x01 << j)) >> j;
+            SERIAL_PORT_MONITOR.print(bit);
+        }
+        SERIAL_PORT_MONITOR.println();
+    }
+
+    SERIAL_PORT_MONITOR.println("-----------------------");
+    SERIAL_PORT_MONITOR.println();
 };
