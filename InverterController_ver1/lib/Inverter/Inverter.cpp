@@ -18,10 +18,6 @@ mcp2518fd CAN(SPI_CS_PIN); // Set CS pin
 mcp2515_can CAN(SPI_CS_PIN); // Set CS pin
 #endif
 
-EV_ECU1::ECU evecu1(0x301);
-MG_ECU1::ECU mgecu1(0x311);
-MG_ECU2::ECU mgecu2(0x321);
-
 Parameter::Parameter(unsigned short offset, float resolution, unsigned short minPhysical, unsigned short maxPhysical)
 {
     this->offset = offset;
@@ -33,7 +29,7 @@ Parameter::Parameter(unsigned short offset, float resolution, unsigned short min
 EV_ECU1::MSG::MSG()
     : ecuEnable(0x0), dischargeCommand(0x0), reserve0(0x0), requestTorque(0x7D0){};
 
-EV_ECU1::ECU::ECU(unsigned short id)
+EV_ECU1::ECU::ECU(unsigned long id)
     : id(id)
 {
     msg = new MSG();
@@ -98,19 +94,9 @@ unsigned char EV_ECU1::ECU::setRequestTorque(float physicalValue)
 };
 
 MG_ECU1::MSG::MSG()
-{
-    shutdownEnable = 0x0;
-    PWM = 0x1;
-    workingStatus = 0x0;
-    reserve0 = 0x0;
-    motorSpeed = 0x36B0;
-    motorPhaseCurrent = 0x0;
-    inputDCVoltage = 0x3FF;
-    reserve1 = 0x3FF;
-    failureStatus = 0x0;
-};
+    : shutdownEnable(0x0), PWM(0x1), workingStatus(0x0), reserve0(0x0), motorSpeed(0x36B0), motorPhaseCurrent(0x0), inputDCVoltage(0x3FF), reserve1(0x0), failureStatus(0x0){};
 
-MG_ECU1::ECU::ECU(unsigned short id)
+MG_ECU1::ECU::ECU(unsigned long id)
     : id(id)
 {
     msg = new MSG();
@@ -260,14 +246,9 @@ void MG_ECU1::ECU::checkMGECU1(void)
 };
 
 MG_ECU2::MSG::MSG()
-{
-    inverterTemp = 0x3C;
-    maxAvailableMotorTorque = 0x0;
-    maxAvailableGenerateTorque = 0x7D0;
-    motorTemp = 0x3C;
-};
+    : inverterTemp(0x3C), maxAvailableMotorTorque(0x0), maxAvailableGenerateTorque(0x7D0), motorTemp(0x3C){};
 
-MG_ECU2::ECU::ECU(unsigned short id)
+MG_ECU2::ECU::ECU(unsigned long id)
     : id(id)
 {
     msg = new MSG();
@@ -336,4 +317,24 @@ void init_CAN(void)
         delay(100);
     }
     SERIAL_PORT_MONITOR.println("CAN init OK!");
+};
+
+/**
+ * cmd = 1 : MG-ECU実行要求ON
+ * cmd = 2 : MG-ECU実行要求OFF
+ *
+*/
+void run_command(unsigned int cmd)
+{
+    switch (cmd)
+    {
+    case 1:
+
+        break;
+    case 2:
+    case 3:
+    case 4:
+    default:
+        break;
+    }
 };

@@ -20,6 +20,7 @@
  *    Vd = { 5/(10k+r) } x r よりrを算出
  *
  *  温度T0=25度のときのサーミスタの抵抗値R0=10kΩ
+ *  B定数 = 3380
  *  データシート(https://www.murata.com/ja-jp/products/productdetail?partno=NXFT15XH103FEAB021)よりB定数(25度/50度)は3380K
  *  データシートがこれであってるかはわからない
  *

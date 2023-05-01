@@ -42,12 +42,12 @@ namespace EV_ECU1
     class ECU
     {
     private:
-        const unsigned short id;
+        const unsigned long id;
         union MSG *msg;
         Parameter *torqueRequestPara; // HV-ECU要求トルク
 
     public:
-        ECU(unsigned short id);
+        ECU(unsigned long id);
         ~ECU();
 
         // Massage取得, 指定したインデックスが0~7以外の時は0を返す
@@ -100,13 +100,13 @@ namespace MG_ECU1
     class ECU
     {
     private:
-        const unsigned short id;
+        const unsigned long id;
         union MSG *msg;
         Parameter *motorSpeedPara;        // モータ回転数
         Parameter *motorPhaseCurrentPara; // モータ相電流
 
     public:
-        ECU(unsigned short id);
+        ECU(unsigned long id);
         ~ECU();
 
         // Massage取得, 指定したインデックスが0~7以外の時は0を返す
@@ -155,7 +155,7 @@ namespace MG_ECU2
     class ECU
     {
     private:
-        const unsigned short id;
+        const unsigned long id;
         union MSG *msg;
         Parameter *inverterTemperaturePara;              // インバータ温度
         Parameter *maximumAvailableMotoringTorquePara;   // モータ上限制限トルク
@@ -163,7 +163,7 @@ namespace MG_ECU2
         Parameter *motorTemperaturePara;                 // モータ温度
 
     public:
-        ECU(unsigned short id);
+        ECU(unsigned long id);
         ~ECU();
 
         // Massage取得, 指定したインデックスが0~7以外の時は0を返す
@@ -198,9 +198,8 @@ namespace MG_ECU2
     };
 }
 
-
 void init_CAN(void);
 
-
+void run_command(unsigned int cmd);
 
 #endif
