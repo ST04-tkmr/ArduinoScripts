@@ -8,7 +8,7 @@ MG_ECU2::ECU mgecu2(0x321);
 
 void setup()
 {
-  //init_CAN();
+  // init_CAN();
   Serial.begin(115200);
 }
 
@@ -18,9 +18,29 @@ void loop()
   {
     unsigned int command = read_int();
     Serial.println(command);
-
   }
 }
+
+/**
+ * cmd = 1 : MG-ECU実行要求ON
+ * cmd = 2 : MG-ECU実行要求OFF
+ * cmd = 3 : Send massage to EV-ECU
+ */
+void run_command(unsigned int cmd)
+{
+  switch (cmd)
+  {
+  case 1:
+    evecu1.setEcuEnable(1);
+    break;
+  case 2:
+    evecu1.setEcuEnable(0);
+  case 3:
+  case 4:
+  default:
+    break;
+  }
+};
 
 void checkBuf(void)
 {

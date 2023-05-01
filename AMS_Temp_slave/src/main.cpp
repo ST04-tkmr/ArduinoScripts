@@ -12,9 +12,10 @@
 #define THM4 (6)
 #define THM5 (7)
 
-const unsigned char thmNum = 6;                      // サーミスタ本数
-volatile Thermistor *thm_p = new Thermistor[thmNum]; // 配列のポインタ
-volatile float maxTemp, minTemp, avrTemp;            // 最高, 最低, 平均温度
+const unsigned char thmNum = 6; // サーミスタ本数
+volatile Thermistor thms[thmNum];
+volatile Thermistor *thm_p = thms;        // 配列のポインタ
+volatile float maxTemp, minTemp, avrTemp; // 最高, 最低, 平均温度
 const float allowableMaxTemp = 60.0f;
 const float allowableMinTemp = 0.0f;
 
@@ -72,4 +73,8 @@ void readThmVoltage(void)
 {
   thm_p->setVal(analogRead(THM0));
   (thm_p + 1)->setVal(analogRead(THM1));
+  (thm_p + 2)->setVal(analogRead(THM2));
+  (thm_p + 3)->setVal(analogRead(THM3));
+  (thm_p + 4)->setVal(analogRead(THM4));
+  (thm_p + 5)->setVal(analogRead(THM5));
 }
