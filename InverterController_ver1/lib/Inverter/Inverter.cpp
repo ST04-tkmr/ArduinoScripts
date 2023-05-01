@@ -364,20 +364,19 @@ unsigned char sendMsgToInverter(EV_ECU1::ECU *ecu)
 
 unsigned long readMsgFromInverter(MG_ECU1::ECU *ecu1, MG_ECU2::ECU *ecu2)
 {
-    unsigned long id;
     if (CAN_MSGAVAIL == CAN.checkReceive())
     {
         unsigned char len = 0;
         unsigned char buf[8];
         CAN.readMsgBuf(&len, buf);
-        id = CAN.getCanId();
+        unsigned long id = CAN.getCanId();
 
-        if (id == MG_ECU1_ID && ecu1->getID() == MG_ECU1_ID)
+        if (id == ecu1->getID())
         {
             ecu1->setMsg(buf);
             return id;
         }
-        else if  (id == MG_ECU2_ID && ecu2->getID() == MG_ECU2_ID)
+        else if  (id == ecu2->getID())
         {
             ecu2->setMsg(buf);
             return id;

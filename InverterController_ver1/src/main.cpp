@@ -19,8 +19,8 @@ void loop()
   if (Serial.available())
   {
     unsigned int command = read_int();
-    run_command(command);
     Serial.println(command);
+    run_command(command);
   }
   else
   {
