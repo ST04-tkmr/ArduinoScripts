@@ -20,9 +20,8 @@
  *    Vd = { 5/(10k+r) } x r よりrを算出
  *
  *  温度T0=25度のときのサーミスタの抵抗値R0=10kΩ
- *  B定数 = 3380
- *  データシート(https://www.murata.com/ja-jp/products/productdetail?partno=NXFT15XH103FEAB021)よりB定数(25度/50度)は3380K
- *  データシートがこれであってるかはわからない
+ *  B定数 = 3423(25℃~80℃)
+ *  データシート(https://akizukidenshi.com/download/ds/murata/NXFT15-series.pdf)
  *
  *  抵抗から温度を算出する式
  *    T = 1/{ln(r/R0)/B + 1/(T0+273)} -273
@@ -46,6 +45,11 @@ private:
     volatile float temp; // 抵抗値から計算した温度
 
 public:
+    static const float r0 = 10000.0f; // 25℃の時のサーミスタの抵抗値
+    static const float t0 = 25.0f;    // 基準温度
+    static const float b = 3380.0f;   // B定数
+    static const float rs = 10000.0f; // サーミスタと直列につなぐ抵抗の値
+
     Thermistor();
 
     //-------------------------------------------------------

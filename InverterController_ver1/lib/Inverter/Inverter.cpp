@@ -319,22 +319,7 @@ void init_CAN(void)
     SERIAL_PORT_MONITOR.println("CAN init OK!");
 };
 
-/**
- * cmd = 1 : MG-ECU実行要求ON
- * cmd = 2 : MG-ECU実行要求OFF
- *
-*/
-void run_command(unsigned int cmd)
+unsigned char sendMsgToInverter(EV_ECU1::ECU *ecu)
 {
-    switch (cmd)
-    {
-    case 1:
 
-        break;
-    case 2:
-    case 3:
-    case 4:
-    default:
-        break;
-    }
 };
