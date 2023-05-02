@@ -19,6 +19,10 @@ mcp2518fd CAN(SPI_CS_PIN); // Set CS pin
 mcp2515_can CAN(SPI_CS_PIN); // Set CS pin
 #endif
 
+EV_ECU1::ECU *evecu1_p;
+MG_ECU1::ECU *mgecu1_p;
+MG_ECU2::ECU *mgecu2_p;
+
 Parameter::Parameter(short offset, float resolution, short minPhysical, short maxPhysical)
     : offset(offset), resolution(resolution), minPhysical(minPhysical), maxPhysical(maxPhysical){};
 
@@ -104,57 +108,6 @@ unsigned char EV_ECU1::ECU::setRequestTorque(float physicalValue)
     }
 };
 
-void EV_ECU1::ECU::checkEVECU1(void)
-{
-    SERIAL_PORT_MONITOR.println("----------EVECU1----------");
-
-    SERIAL_PORT_MONITOR.print("ecuEnable = ");
-    SERIAL_PORT_MONITOR.println(getEcuEnable(), BIN);
-    SERIAL_PORT_MONITOR.print("dischargeCommand = ");
-    SERIAL_PORT_MONITOR.println(getDischargeCommand(), BIN);
-    SERIAL_PORT_MONITOR.print("requestTorque = ");
-    SERIAL_PORT_MONITOR.println(getNormalRequestTorque(), BIN);
-
-    if (getEcuEnable())
-    {
-        SERIAL_PORT_MONITOR.println("MG-ECU実行要求ON");
-    }
-    else
-    {
-        SERIAL_PORT_MONITOR.println("MG-ECU実行要求OFF");
-    }
-
-    if (getDischargeCommand())
-    {
-        SERIAL_PORT_MONITOR.println("平滑コンデンサ放電要求ON");
-    }
-    else
-    {
-        SERIAL_PORT_MONITOR.println("平滑コンデンサ放電要求OFF");
-    }
-
-    SERIAL_PORT_MONITOR.print("HV-ECU要求トルク ");
-    SERIAL_PORT_MONITOR.println(getRequestTorque());
-
-    SERIAL_PORT_MONITOR.println("--------------------------");
-    SERIAL_PORT_MONITOR.println();
-};
-
-void EV_ECU1::ECU::checkTorqueRequestPara(void)
-{
-    SERIAL_PORT_MONITOR.println("----------TorqueRequest----------");
-    SERIAL_PORT_MONITOR.print("offset = ");
-    SERIAL_PORT_MONITOR.println(torqueRequestPara->getOffset());
-    SERIAL_PORT_MONITOR.print("resolution = ");
-    SERIAL_PORT_MONITOR.println(torqueRequestPara->getResolution());
-    SERIAL_PORT_MONITOR.print("minPhysical = ");
-    SERIAL_PORT_MONITOR.println(torqueRequestPara->getMinPhysical());
-    SERIAL_PORT_MONITOR.print("maxPhysical = ");
-    SERIAL_PORT_MONITOR.println(torqueRequestPara->getMaxPhysical());
-    SERIAL_PORT_MONITOR.println("---------------------------------");
-    SERIAL_PORT_MONITOR.println();
-};
-
 MG_ECU1::MSG::MSG()
     : shutdownEnable(0x0), PWM(0x1), workingStatus(0x0), reserve0(0x0), motorSpeed(0x36B0), motorPhaseCurrent(0x0), inputDCVoltage(0x3FF), reserve1(0x0), failureStatus(0x0){};
 
@@ -203,128 +156,6 @@ unsigned char MG_ECU1::ECU::setMsg(unsigned char *buf)
     }
 
     return 1;
-};
-
-void MG_ECU1::ECU::checkMGECU1(void)
-{
-    SERIAL_PORT_MONITOR.println("----------MGECU1----------");
-
-    SERIAL_PORT_MONITOR.print("shutdownEnable = ");
-    SERIAL_PORT_MONITOR.println(getShutdownEnable(), BIN);
-    SERIAL_PORT_MONITOR.print("PWM = ");
-    SERIAL_PORT_MONITOR.println(getPWM(), BIN);
-    SERIAL_PORT_MONITOR.print("WorkingStatus = ");
-    SERIAL_PORT_MONITOR.println(getWorkingStatus(), BIN);
-    SERIAL_PORT_MONITOR.print("motorSpeed = ");
-    SERIAL_PORT_MONITOR.println(getNormalMotorSpeed(), BIN);
-    SERIAL_PORT_MONITOR.print("motorPhaseCurrent = ");
-    SERIAL_PORT_MONITOR.println(getNormalMotorPhaseCurrent(), BIN);
-    SERIAL_PORT_MONITOR.print("inputDCVoltage = ");
-    SERIAL_PORT_MONITOR.println(getInputDCVoltage(), BIN);
-    SERIAL_PORT_MONITOR.print("failureStatus = ");
-    SERIAL_PORT_MONITOR.println(getFailureStatus(), BIN);
-
-    if (getShutdownEnable())
-    {
-        SERIAL_PORT_MONITOR.println("シャットダウン許可有効");
-    }
-    else
-    {
-        SERIAL_PORT_MONITOR.println("シャットダウン許可無効");
-    }
-
-    SERIAL_PORT_MONITOR.print("ゲート駆動状態 ");
-    switch (getPWM())
-    {
-    case 0b00:
-        SERIAL_PORT_MONITOR.println("短絡");
-        break;
-    case 0b01:
-        SERIAL_PORT_MONITOR.println("正常 トルクなし");
-        break;
-    case 0b10:
-        SERIAL_PORT_MONITOR.println("正常 制御中");
-        break;
-    default:
-        SERIAL_PORT_MONITOR.println("error");
-        break;
-    }
-
-    SERIAL_PORT_MONITOR.print("制御状態 ");
-    switch (getWorkingStatus())
-    {
-    case 0b000:
-        SERIAL_PORT_MONITOR.println("初期状態");
-        break;
-    case 0b001:
-        SERIAL_PORT_MONITOR.println("プリチャージ中");
-        break;
-    case 0b010:
-        SERIAL_PORT_MONITOR.println("スタンバイ");
-        break;
-    case 0b011:
-        SERIAL_PORT_MONITOR.println("トルク制御中");
-        break;
-    case 0b111:
-        SERIAL_PORT_MONITOR.println("急速放電中");
-        break;
-    default:
-        SERIAL_PORT_MONITOR.println("error");
-        break;
-    }
-
-    SERIAL_PORT_MONITOR.print("モータ回転数 ");
-    if (getMotorSpeed() == 0x00)
-    {
-        SERIAL_PORT_MONITOR.println("調整中 0位置");
-    }
-    else
-    {
-        SERIAL_PORT_MONITOR.println(getMotorSpeed());
-    }
-
-    SERIAL_PORT_MONITOR.print("モータ相電流 ");
-    if (getMotorPhaseCurrent() == 0x00)
-    {
-        SERIAL_PORT_MONITOR.println("調整中 0位置");
-    }
-    else
-    {
-        SERIAL_PORT_MONITOR.println(getMotorPhaseCurrent());
-    }
-
-    SERIAL_PORT_MONITOR.print("入力直流電圧 ");
-    if (getInputDCVoltage() == 0x00)
-    {
-        SERIAL_PORT_MONITOR.println("調整中 0位置");
-    }
-    else
-    {
-        SERIAL_PORT_MONITOR.println(getInputDCVoltage());
-    }
-
-    SERIAL_PORT_MONITOR.print("異常状態 ");
-    switch (getFailureStatus())
-    {
-    case 0b000:
-        SERIAL_PORT_MONITOR.println("エラーなし");
-        break;
-    case 0b001:
-        SERIAL_PORT_MONITOR.println("モータ出力制限中");
-        break;
-    case 0b010:
-        SERIAL_PORT_MONITOR.println("警告");
-        break;
-    case 0b101:
-        SERIAL_PORT_MONITOR.println("クリティカルエラー");
-        break;
-    default:
-        SERIAL_PORT_MONITOR.println("error");
-        break;
-    }
-
-    SERIAL_PORT_MONITOR.println("--------------------------");
-    SERIAL_PORT_MONITOR.println();
 };
 
 MG_ECU2::MSG::MSG()
@@ -391,37 +222,12 @@ unsigned char MG_ECU2::ECU::setMsg(unsigned char *buf)
     return 1;
 };
 
-void MG_ECU2::ECU::checkMGECU2(void)
+void init(EV_ECU1::ECU *ee1, MG_ECU1::ECU *me1, MG_ECU2::ECU *me2)
 {
-    SERIAL_PORT_MONITOR.println("----------MGECU2----------");
+    evecu1_p = ee1;
+    mgecu1_p = me1;
+    mgecu2_p = me2;
 
-    SERIAL_PORT_MONITOR.print("inverterTemp = ");
-    SERIAL_PORT_MONITOR.println(getNormalInverterTemp(), BIN);
-    SERIAL_PORT_MONITOR.print("maxMotorTorque = ");
-    SERIAL_PORT_MONITOR.println(getNormalMaxAvailableMotorTorque(), BIN);
-    SERIAL_PORT_MONITOR.print("maxGenerateTorque = ");
-    SERIAL_PORT_MONITOR.println(getNormalMaxAvailableGenerateTorque(), BIN);
-    SERIAL_PORT_MONITOR.print("motorTemp = ");
-    SERIAL_PORT_MONITOR.println(getNormalMotorTemp(), BIN);
-
-    SERIAL_PORT_MONITOR.print("インバータ温度 ");
-    SERIAL_PORT_MONITOR.println(getInverterTemp());
-
-    SERIAL_PORT_MONITOR.print("モーター上限制限トルク ");
-    SERIAL_PORT_MONITOR.println(getMaxAvailableMotorTorque());
-
-    SERIAL_PORT_MONITOR.print("モーター下限制限トルク ");
-    SERIAL_PORT_MONITOR.println(getMaxAvailableGenerateTorque());
-
-    SERIAL_PORT_MONITOR.print("モーター温度 ");
-    SERIAL_PORT_MONITOR.println(getMotorTemp());
-
-    SERIAL_PORT_MONITOR.println("--------------------------");
-    SERIAL_PORT_MONITOR.println();
-};
-
-void init_CAN(void)
-{
     SERIAL_PORT_MONITOR.begin(115200);
     while (CAN_OK != CAN.begin(CAN_500KBPS))
     {
@@ -431,32 +237,27 @@ void init_CAN(void)
     SERIAL_PORT_MONITOR.println("CAN init OK!");
 };
 
-unsigned char sendMsgToInverter(EV_ECU1::ECU *ecu)
+unsigned char sendMsgToInverter(unsigned char printFlag)
 {
     unsigned char buf[8];
 
-    if (ecu->getID() == EV_ECU1_ID)
+    for (int i = 0; i < 8; i++)
     {
-        for (int i = 0; i < 8; i++)
-        {
-            buf[i] = ecu->getMsgByte(i);
-        }
-
-        CAN.sendMsgBuf(ecu->getID(), 0, 8, buf);
-
-        //SERIAL_PORT_MONITOR.println("send massage to inverter");
-        //checkBuf(buf);
-
-        return 1;
+        buf[i] = evecu1_p->getMsgByte(i);
     }
-    else
+
+    CAN.sendMsgBuf(evecu1_p->getID(), 0, 8, buf);
+
+    if (printFlag)
     {
-        SERIAL_PORT_MONITOR.println("send CAN massage fail, please check ID");
-        return 0;
+        SERIAL_PORT_MONITOR.println("send massage to inverter");
+        checkBuf(buf);
     }
+
+    return 1;
 };
 
-unsigned long readMsgFromInverter(MG_ECU1::ECU *ecu1, MG_ECU2::ECU *ecu2, unsigned char printFlag)
+unsigned long readMsgFromInverter(unsigned char printFlag)
 {
     if (CAN_MSGAVAIL == CAN.checkReceive())
     {
@@ -465,7 +266,7 @@ unsigned long readMsgFromInverter(MG_ECU1::ECU *ecu1, MG_ECU2::ECU *ecu2, unsign
         CAN.readMsgBuf(&len, buf);
         unsigned long id = CAN.getCanId();
 
-        if (id == ecu1->getID())
+        if (id == mgecu1_p->getID())
         {
             if (printFlag)
             {
@@ -474,10 +275,11 @@ unsigned long readMsgFromInverter(MG_ECU1::ECU *ecu1, MG_ECU2::ECU *ecu2, unsign
                 SERIAL_PORT_MONITOR.println(id, HEX);
                 checkBuf(buf);
             }
-            ecu1->setMsg(buf);
+
+            mgecu1_p->setMsg(buf);
             return id;
         }
-        else if (id == ecu2->getID())
+        else if (id == mgecu2_p->getID())
         {
             if (printFlag)
             {
@@ -486,7 +288,8 @@ unsigned long readMsgFromInverter(MG_ECU1::ECU *ecu1, MG_ECU2::ECU *ecu2, unsign
                 SERIAL_PORT_MONITOR.println(id, HEX);
                 checkBuf(buf);
             }
-            ecu2->setMsg(buf);
+
+            mgecu2_p->setMsg(buf);
             return id;
         }
         else
@@ -502,21 +305,245 @@ unsigned long readMsgFromInverter(MG_ECU1::ECU *ecu1, MG_ECU2::ECU *ecu2, unsign
 
 void checkBuf(unsigned char *buf)
 {
-    SERIAL_PORT_MONITOR.println("----------buf----------");
-
     for (int i = 0; i < 8; i++)
     {
         SERIAL_PORT_MONITOR.print("buf");
         SERIAL_PORT_MONITOR.print(i);
         SERIAL_PORT_MONITOR.print(" = ");
+
         for (int j = 7; j >= 0; j--)
         {
             unsigned char bit = (*(buf + i) & (0x01 << j)) >> j;
             SERIAL_PORT_MONITOR.print(bit);
         }
+
         SERIAL_PORT_MONITOR.println();
     }
+};
 
-    SERIAL_PORT_MONITOR.println("-----------------------");
+void checkMsgBit(unsigned long id)
+{
+    unsigned char buf[8];
+
+    switch (id)
+    {
+    case EV_ECU1_ID:
+        for (int i = 0; i < 8; i++)
+        {
+            buf[i] = evecu1_p->getMsgByte(i);
+        }
+        SERIAL_PORT_MONITOR.println("----------EVECU1Massage----------");
+        break;
+
+    case MG_ECU1_ID:
+        for (int i = 0; i < 8; i++)
+        {
+            buf[i] = mgecu1_p->getMsgByte(i);
+        }
+        SERIAL_PORT_MONITOR.println("----------MGECU1Massage----------");
+        break;
+
+    case MG_ECU2_ID:
+        for (int i = 0; i < 8; i++)
+        {
+            buf[i] = mgecu2_p->getMsgByte(i);
+        }
+        SERIAL_PORT_MONITOR.println("----------MGECU2Massage----------");
+        break;
+
+    default:
+        SERIAL_PORT_MONITOR.print(id);
+        SERIAL_PORT_MONITOR.println(" is invalid ID");
+        return;
+        break;
+    }
+
+    checkBuf(buf);
+
+    SERIAL_PORT_MONITOR.println("---------------------------------");
     SERIAL_PORT_MONITOR.println();
+};
+
+void checkMsg(unsigned long id)
+{
+    switch (id)
+    {
+    case EV_ECU1_ID:
+        SERIAL_PORT_MONITOR.println("----------EVECU1----------");
+
+        SERIAL_PORT_MONITOR.print("ecuEnable = ");
+        SERIAL_PORT_MONITOR.println(evecu1_p->getEcuEnable(), BIN);
+        SERIAL_PORT_MONITOR.print("dischargeCommand = ");
+        SERIAL_PORT_MONITOR.println(evecu1_p->getDischargeCommand(), BIN);
+        SERIAL_PORT_MONITOR.print("requestTorque = ");
+        SERIAL_PORT_MONITOR.println(evecu1_p->getNormalRequestTorque(), BIN);
+
+        if (evecu1_p->getEcuEnable())
+        {
+            SERIAL_PORT_MONITOR.println("MG-ECU実行要求ON");
+        }
+        else
+        {
+            SERIAL_PORT_MONITOR.println("MG-ECU実行要求OFF");
+        }
+
+        if (evecu1_p->getDischargeCommand())
+        {
+            SERIAL_PORT_MONITOR.println("平滑コンデンサ放電要求ON");
+        }
+        else
+        {
+            SERIAL_PORT_MONITOR.println("平滑コンデンサ放電要求OFF");
+        }
+
+        SERIAL_PORT_MONITOR.print("HV-ECU要求トルク ");
+        SERIAL_PORT_MONITOR.println(evecu1_p->getRequestTorque());
+
+        SERIAL_PORT_MONITOR.println("--------------------------");
+        SERIAL_PORT_MONITOR.println();
+        break;
+
+    case MG_ECU1_ID:
+        SERIAL_PORT_MONITOR.println("----------MGECU1----------");
+
+        SERIAL_PORT_MONITOR.print("shutdownEnable = ");
+        SERIAL_PORT_MONITOR.println(mgecu1_p->getShutdownEnable(), BIN);
+        SERIAL_PORT_MONITOR.print("PWM = ");
+        SERIAL_PORT_MONITOR.println(mgecu1_p->getPWM(), BIN);
+        SERIAL_PORT_MONITOR.print("WorkingStatus = ");
+        SERIAL_PORT_MONITOR.println(mgecu1_p->getWorkingStatus(), BIN);
+        SERIAL_PORT_MONITOR.print("motorSpeed = ");
+        SERIAL_PORT_MONITOR.println(mgecu1_p->getNormalMotorSpeed(), BIN);
+        SERIAL_PORT_MONITOR.print("motorPhaseCurrent = ");
+        SERIAL_PORT_MONITOR.println(mgecu1_p->getNormalMotorPhaseCurrent(), BIN);
+        SERIAL_PORT_MONITOR.print("inputDCVoltage = ");
+        SERIAL_PORT_MONITOR.println(mgecu1_p->getInputDCVoltage(), BIN);
+        SERIAL_PORT_MONITOR.print("failureStatus = ");
+        SERIAL_PORT_MONITOR.println(mgecu1_p->getFailureStatus(), BIN);
+
+        if (mgecu1_p->getShutdownEnable())
+        {
+            SERIAL_PORT_MONITOR.println("シャットダウン許可有効");
+        }
+        else
+        {
+            SERIAL_PORT_MONITOR.println("シャットダウン許可無効");
+        }
+
+        SERIAL_PORT_MONITOR.print("ゲート駆動状態 ");
+        switch (mgecu1_p->getPWM())
+        {
+        case 0b00:
+            SERIAL_PORT_MONITOR.println("短絡");
+            break;
+
+        case 0b01:
+            SERIAL_PORT_MONITOR.println("正常 トルクなし");
+            break;
+
+        case 0b10:
+            SERIAL_PORT_MONITOR.println("正常 制御中");
+            break;
+
+        default:
+            SERIAL_PORT_MONITOR.println("error");
+            break;
+        }
+
+        SERIAL_PORT_MONITOR.print("制御状態 ");
+        switch (mgecu1_p->getWorkingStatus())
+        {
+        case 0b000:
+            SERIAL_PORT_MONITOR.println("初期状態");
+            break;
+
+        case 0b001:
+            SERIAL_PORT_MONITOR.println("プリチャージ中");
+            break;
+
+        case 0b010:
+            SERIAL_PORT_MONITOR.println("スタンバイ");
+            break;
+
+        case 0b011:
+            SERIAL_PORT_MONITOR.println("トルク制御中");
+            break;
+
+        case 0b111:
+            SERIAL_PORT_MONITOR.println("急速放電中");
+            break;
+
+        default:
+            SERIAL_PORT_MONITOR.println("error");
+            break;
+        }
+
+        SERIAL_PORT_MONITOR.print("モータ回転数 ");
+        SERIAL_PORT_MONITOR.println(mgecu1_p->getMotorSpeed());
+
+        SERIAL_PORT_MONITOR.print("モータ相電流 ");
+        SERIAL_PORT_MONITOR.println(mgecu1_p->getMotorPhaseCurrent());
+
+        SERIAL_PORT_MONITOR.print("入力直流電圧 ");
+        SERIAL_PORT_MONITOR.println(mgecu1_p->getInputDCVoltage());
+
+        SERIAL_PORT_MONITOR.print("異常状態 ");
+        switch (mgecu1_p->getFailureStatus())
+        {
+        case 0b000:
+            SERIAL_PORT_MONITOR.println("エラーなし");
+            break;
+
+        case 0b001:
+            SERIAL_PORT_MONITOR.println("モータ出力制限中");
+            break;
+
+        case 0b010:
+            SERIAL_PORT_MONITOR.println("警告");
+            break;
+
+        case 0b101:
+            SERIAL_PORT_MONITOR.println("クリティカルエラー");
+            break;
+
+        default:
+            SERIAL_PORT_MONITOR.println("error");
+            break;
+        }
+
+        SERIAL_PORT_MONITOR.println("--------------------------");
+        SERIAL_PORT_MONITOR.println();
+        break;
+
+    case MG_ECU2_ID:
+        SERIAL_PORT_MONITOR.println("----------MGECU2----------");
+
+        SERIAL_PORT_MONITOR.print("inverterTemp = ");
+        SERIAL_PORT_MONITOR.println(mgecu2_p->getNormalInverterTemp(), BIN);
+        SERIAL_PORT_MONITOR.print("maxMotorTorque = ");
+        SERIAL_PORT_MONITOR.println(mgecu2_p->getNormalMaxAvailableMotorTorque(), BIN);
+        SERIAL_PORT_MONITOR.print("maxGenerateTorque = ");
+        SERIAL_PORT_MONITOR.println(mgecu2_p->getNormalMaxAvailableGenerateTorque(), BIN);
+        SERIAL_PORT_MONITOR.print("motorTemp = ");
+        SERIAL_PORT_MONITOR.println(mgecu2_p->getNormalMotorTemp(), BIN);
+
+        SERIAL_PORT_MONITOR.print("インバータ温度 ");
+        SERIAL_PORT_MONITOR.println(mgecu2_p->getInverterTemp());
+
+        SERIAL_PORT_MONITOR.print("モーター上限制限トルク ");
+        SERIAL_PORT_MONITOR.println(mgecu2_p->getMaxAvailableMotorTorque());
+
+        SERIAL_PORT_MONITOR.print("モーター下限制限トルク ");
+        SERIAL_PORT_MONITOR.println(mgecu2_p->getMaxAvailableGenerateTorque());
+
+        SERIAL_PORT_MONITOR.print("モーター温度 ");
+        SERIAL_PORT_MONITOR.println(mgecu2_p->getMotorTemp());
+
+        SERIAL_PORT_MONITOR.println("--------------------------");
+        SERIAL_PORT_MONITOR.println();
+        break;
+
+    default:
+        break;
+    }
 };

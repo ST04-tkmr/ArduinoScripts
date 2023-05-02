@@ -20,10 +20,10 @@ public:
     inline short getMinPhysical() { return minPhysical; };
     inline short getMaxPhysical() { return maxPhysical; };
 
-    //Normal ValueからPhysical Valueを計算
+    // Normal ValueからPhysical Valueを計算
     float calcPhysical(unsigned short normal);
 
-    //Physical ValueからNormal Valueを計算
+    // Physical ValueからNormal Valueを計算
     unsigned short calcNormal(float physicalValue);
 };
 
@@ -79,11 +79,6 @@ namespace EV_ECU1
          * -1000 <= physicalValue <= 1000
          */
         unsigned char setRequestTorque(float physicalValue);
-
-        // 各パラメータの状態をシリアルモニタでチェック
-        void checkEVECU1(void);
-
-        void checkTorqueRequestPara(void);
     };
 }
 
@@ -145,9 +140,6 @@ namespace MG_ECU1
         inline unsigned char getFailureStatus() { return msg->failureStatus; };
 
         unsigned char setMsg(unsigned char *buf);
-
-        // 各パラメータの状態をシリアルモニタでチェック
-        void checkMGECU1();
     };
 }
 
@@ -211,30 +203,38 @@ namespace MG_ECU2
         inline unsigned char getNormalMotorTemp() { return msg->motorTemp; };
 
         unsigned char setMsg(unsigned char *buf);
-
-        // 各パラメータの状態をシリアルモニタでチェック
-        void checkMGECU2();
     };
 }
 
 // CAN通信初期化処理
-void init_CAN(void);
+void init(EV_ECU1::ECU *ee1, MG_ECU1::ECU *me1, MG_ECU2::ECU *me2);
 
 /**
  * EV-ECUへMassage送信
+ * printFlag = 1 のとき, Buf をシリアルモニタに表示
  * 戻り値 : 1(成功) or 0(失敗)
  */
-unsigned char sendMsgToInverter(EV_ECU1::ECU *ecu);
+unsigned char sendMsgToInverter(unsigned char printFlag);
 
 /**
  * 受信したMassageを読み取る
  * printFlag = 1 のときID, Buf をシリアルモニタに表示
  */
-unsigned long readMsgFromInverter(MG_ECU1::ECU *ecu1, MG_ECU2::ECU *ecu2, unsigned char printFlag);
+unsigned long readMsgFromInverter(unsigned char printFlag);
 
 /**
  * シリアルモニタにbufのビットを全て表示する
  */
 void checkBuf(unsigned char *buf);
+
+/**
+ * 指定したIDのECUのMassageのビットをシリアルモニタに表示
+ */
+void checkMsgBit(unsigned long id);
+
+/**
+ * 指定したIDのECUの各パラメータをシリアルモニタに表示
+ */
+void checkMsg(unsigned long id);
 
 #endif
