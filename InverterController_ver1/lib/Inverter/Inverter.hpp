@@ -8,19 +8,23 @@
 class Parameter
 {
 private:
-    unsigned short offset;
-    float resolution;
-    unsigned short minPhysical, maxPhysical;
+    const short offset;
+    const float resolution;
+    const short minPhysical, maxPhysical;
 
 public:
-    Parameter(unsigned short offset, float resolution, unsigned short minPhysical, unsigned short maxPhysical);
+    Parameter(short offset, float resolution, short minPhysical, short maxPhysical);
 
-    inline unsigned short getOffset() { return offset; };
+    inline short getOffset() { return offset; };
     inline float getResolution() { return resolution; };
-    inline unsigned short getMinPhysical() { return minPhysical; };
-    inline unsigned short getMaxPhysical() { return maxPhysical; };
-    inline float calcPhysical(unsigned short normal) { return (normal * resolution) + offset; };
-    inline unsigned short calcNormal(float physicalValue) { return static_cast<unsigned short>((physicalValue - offset) / resolution); };
+    inline short getMinPhysical() { return minPhysical; };
+    inline short getMaxPhysical() { return maxPhysical; };
+
+    //Normal ValueからPhysical Valueを計算
+    float calcPhysical(unsigned short normal);
+
+    //Physical ValueからNormal Valueを計算
+    unsigned short calcNormal(float physicalValue);
 };
 
 namespace EV_ECU1
@@ -59,7 +63,7 @@ namespace EV_ECU1
         inline unsigned char getDischargeCommand() { return msg->dischargeCommand; };
 
         // 戻り値はPhysical Value
-        inline float getRequestTorque() { return torqueRequestPara->calcPhysical(msg->requestTorque); };
+        float getRequestTorque();
 
         // 戻り値はNormal Value
         inline unsigned short getNormalRequestTorque() { return msg->requestTorque; };
@@ -75,6 +79,11 @@ namespace EV_ECU1
          * -1000 <= physicalValue <= 1000
          */
         unsigned char setRequestTorque(float physicalValue);
+
+        // 各パラメータの状態をシリアルモニタでチェック
+        void checkEVECU1(void);
+
+        void checkTorqueRequestPara(void);
     };
 }
 
@@ -89,7 +98,7 @@ namespace MG_ECU1
             unsigned char PWM : 2;            // ゲート駆動状態
             unsigned char workingStatus : 3;  // 制御状態
             unsigned char reserve0 : 2;
-            unsigned short motorSpeed;             // モータ回転数 Range 0~28000
+            unsigned short motorSpeed : 16;        // モータ回転数 Range 0~28000
             unsigned short motorPhaseCurrent : 10; // モータ相電流 Range 0~1000
             unsigned short inputDCVoltage : 10;    // 入力直流電圧 Range 0~500
             unsigned long reserve1 : 19;
@@ -121,13 +130,13 @@ namespace MG_ECU1
         inline unsigned char getWorkingStatus() { return msg->workingStatus; };
 
         // 戻り値はPhysical Value
-        inline float getMotorSpeed() { return motorSpeedPara->calcPhysical(msg->motorSpeed); };
+        float getMotorSpeed();
 
         // 戻り値はNormal Value
         inline unsigned short getNormalMotorSpeed() { return msg->motorSpeed; };
 
         // 戻り値はPhysical Value
-        inline float getMotorPhaseCurrent() { return motorPhaseCurrentPara->calcPhysical(msg->motorPhaseCurrent); };
+        float getMotorPhaseCurrent();
 
         // 戻り値はNormal Value
         inline unsigned short getNormalMotorPhaseCurrent() { return msg->motorPhaseCurrent; };
@@ -149,10 +158,10 @@ namespace MG_ECU2
         unsigned char msgs[8];
         struct
         {
-            unsigned char inverterTemp;                     // インバータ温度
+            unsigned char inverterTemp : 8;                 // インバータ温度
             unsigned short maxAvailableMotorTorque : 12;    // モータ上限制限トルク
             unsigned short maxAvailableGenerateTorque : 12; // モータ下限制限トルク
-            unsigned char motorTemp;                        // モータ温度
+            unsigned char motorTemp : 8;                    // モータ温度
         };
 
         MSG();
@@ -178,25 +187,25 @@ namespace MG_ECU2
         unsigned char getMsgByte(unsigned char index);
 
         // 戻り値はPhysical Value
-        inline float getInverterTemp() { return inverterTemperaturePara->calcPhysical(msg->inverterTemp); };
+        float getInverterTemp();
 
         // 戻り値はNormal Value
         inline unsigned char getNormalInverterTemp() { return msg->inverterTemp; };
 
         // 戻り値はPhysical Value
-        inline float getMaxAvailableMotorTorque() { return maximumAvailableMotoringTorquePara->calcPhysical(msg->maxAvailableMotorTorque); };
+        float getMaxAvailableMotorTorque();
 
         // 戻り値はNormal Value
         inline unsigned short getNormalMaxAvailableMotorTorque() { return msg->maxAvailableMotorTorque; };
 
         // 戻り値はPhysical Value
-        inline float getMaxAvailableGenerateTorque() { return maximumAvailableGeneratingTorquePara->calcPhysical(msg->maxAvailableGenerateTorque); };
+        float getMaxAvailableGenerateTorque();
 
         // 戻り値はNormal Value
         inline unsigned short getNormalMaxAvailableGenerateTorque() { return msg->maxAvailableGenerateTorque; };
 
         // 戻り値はPhysical Value
-        inline float getMotorTemp() { return motorTemperaturePara->calcPhysical(msg->motorTemp); };
+        float getMotorTemp();
 
         // 戻り値はNormal Value
         inline unsigned char getNormalMotorTemp() { return msg->motorTemp; };
@@ -225,7 +234,7 @@ unsigned long readMsgFromInverter(MG_ECU1::ECU *ecu1, MG_ECU2::ECU *ecu2, unsign
 
 /**
  * シリアルモニタにbufのビットを全て表示する
-*/
+ */
 void checkBuf(unsigned char *buf);
 
 #endif

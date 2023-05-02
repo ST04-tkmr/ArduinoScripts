@@ -19,12 +19,17 @@ mcp2518fd CAN(SPI_CS_PIN); // Set CS pin
 mcp2515_can CAN(SPI_CS_PIN); // Set CS pin
 #endif
 
-Parameter::Parameter(unsigned short offset, float resolution, unsigned short minPhysical, unsigned short maxPhysical)
+Parameter::Parameter(short offset, float resolution, short minPhysical, short maxPhysical)
+    : offset(offset), resolution(resolution), minPhysical(minPhysical), maxPhysical(maxPhysical){};
+
+float Parameter::calcPhysical(unsigned short normal)
 {
-    this->offset = offset;
-    this->resolution = resolution;
-    this->minPhysical = minPhysical;
-    this->maxPhysical = maxPhysical;
+    return (normal * resolution) + offset;
+};
+
+unsigned short Parameter::calcNormal(float physicalValue)
+{
+    return static_cast<unsigned short>((physicalValue - offset) / resolution);
 };
 
 EV_ECU1::MSG::MSG()
@@ -53,6 +58,11 @@ unsigned char EV_ECU1::ECU::getMsgByte(unsigned char index)
     {
         return 0;
     }
+};
+
+float EV_ECU1::ECU::getRequestTorque()
+{
+    return torqueRequestPara->calcPhysical(msg->requestTorque);
 };
 
 unsigned char EV_ECU1::ECU::setEcuEnable(unsigned char ecuEnable)
@@ -94,6 +104,57 @@ unsigned char EV_ECU1::ECU::setRequestTorque(float physicalValue)
     }
 };
 
+void EV_ECU1::ECU::checkEVECU1(void)
+{
+    SERIAL_PORT_MONITOR.println("----------EVECU1----------");
+
+    SERIAL_PORT_MONITOR.print("ecuEnable = ");
+    SERIAL_PORT_MONITOR.println(getEcuEnable(), BIN);
+    SERIAL_PORT_MONITOR.print("dischargeCommand = ");
+    SERIAL_PORT_MONITOR.println(getDischargeCommand(), BIN);
+    SERIAL_PORT_MONITOR.print("requestTorque = ");
+    SERIAL_PORT_MONITOR.println(getNormalRequestTorque(), BIN);
+
+    if (getEcuEnable())
+    {
+        SERIAL_PORT_MONITOR.println("MG-ECU実行要求ON");
+    }
+    else
+    {
+        SERIAL_PORT_MONITOR.println("MG-ECU実行要求OFF");
+    }
+
+    if (getDischargeCommand())
+    {
+        SERIAL_PORT_MONITOR.println("平滑コンデンサ放電要求ON");
+    }
+    else
+    {
+        SERIAL_PORT_MONITOR.println("平滑コンデンサ放電要求OFF");
+    }
+
+    SERIAL_PORT_MONITOR.print("HV-ECU要求トルク ");
+    SERIAL_PORT_MONITOR.println(getRequestTorque());
+
+    SERIAL_PORT_MONITOR.println("--------------------------");
+    SERIAL_PORT_MONITOR.println();
+};
+
+void EV_ECU1::ECU::checkTorqueRequestPara(void)
+{
+    SERIAL_PORT_MONITOR.println("----------TorqueRequest----------");
+    SERIAL_PORT_MONITOR.print("offset = ");
+    SERIAL_PORT_MONITOR.println(torqueRequestPara->getOffset());
+    SERIAL_PORT_MONITOR.print("resolution = ");
+    SERIAL_PORT_MONITOR.println(torqueRequestPara->getResolution());
+    SERIAL_PORT_MONITOR.print("minPhysical = ");
+    SERIAL_PORT_MONITOR.println(torqueRequestPara->getMinPhysical());
+    SERIAL_PORT_MONITOR.print("maxPhysical = ");
+    SERIAL_PORT_MONITOR.println(torqueRequestPara->getMaxPhysical());
+    SERIAL_PORT_MONITOR.println("---------------------------------");
+    SERIAL_PORT_MONITOR.println();
+};
+
 MG_ECU1::MSG::MSG()
     : shutdownEnable(0x0), PWM(0x1), workingStatus(0x0), reserve0(0x0), motorSpeed(0x36B0), motorPhaseCurrent(0x0), inputDCVoltage(0x3FF), reserve1(0x0), failureStatus(0x0){};
 
@@ -122,6 +183,16 @@ unsigned char MG_ECU1::ECU::getMsgByte(unsigned char index)
     {
         return 0;
     }
+};
+
+float MG_ECU1::ECU::getMotorSpeed()
+{
+    return motorSpeedPara->calcPhysical(msg->motorSpeed);
+};
+
+float MG_ECU1::ECU::getMotorPhaseCurrent()
+{
+    return motorPhaseCurrentPara->calcPhysical(msg->motorPhaseCurrent);
 };
 
 unsigned char MG_ECU1::ECU::setMsg(unsigned char *buf)
@@ -209,7 +280,7 @@ void MG_ECU1::ECU::checkMGECU1(void)
     }
     else
     {
-        SERIAL_PORT_MONITOR.println(getMotorSpeed() - 14000);
+        SERIAL_PORT_MONITOR.println(getMotorSpeed());
     }
 
     SERIAL_PORT_MONITOR.print("モータ相電流 ");
@@ -239,7 +310,7 @@ void MG_ECU1::ECU::checkMGECU1(void)
         SERIAL_PORT_MONITOR.println("エラーなし");
         break;
     case 0b001:
-        SERIAL_PORT_MONITOR.println("負荷軽減");
+        SERIAL_PORT_MONITOR.println("モータ出力制限中");
         break;
     case 0b010:
         SERIAL_PORT_MONITOR.println("警告");
@@ -288,6 +359,26 @@ unsigned char MG_ECU2::ECU::getMsgByte(unsigned char index)
     {
         return 0;
     }
+};
+
+float MG_ECU2::ECU::getInverterTemp()
+{
+    return inverterTemperaturePara->calcPhysical(msg->inverterTemp);
+};
+
+float MG_ECU2::ECU::getMaxAvailableMotorTorque()
+{
+    return maximumAvailableMotoringTorquePara->calcPhysical(msg->maxAvailableMotorTorque);
+};
+
+float MG_ECU2::ECU::getMaxAvailableGenerateTorque()
+{
+    return maximumAvailableGeneratingTorquePara->calcPhysical(msg->maxAvailableGenerateTorque);
+};
+
+float MG_ECU2::ECU::getMotorTemp()
+{
+    return motorTemperaturePara->calcPhysical(msg->motorTemp);
 };
 
 unsigned char MG_ECU2::ECU::setMsg(unsigned char *buf)
@@ -351,9 +442,10 @@ unsigned char sendMsgToInverter(EV_ECU1::ECU *ecu)
             buf[i] = ecu->getMsgByte(i);
         }
 
-        checkBuf(buf);
-
         CAN.sendMsgBuf(ecu->getID(), 0, 8, buf);
+
+        //SERIAL_PORT_MONITOR.println("send massage to inverter");
+        //checkBuf(buf);
 
         return 1;
     }
@@ -373,20 +465,27 @@ unsigned long readMsgFromInverter(MG_ECU1::ECU *ecu1, MG_ECU2::ECU *ecu2, unsign
         CAN.readMsgBuf(&len, buf);
         unsigned long id = CAN.getCanId();
 
-        if (printFlag)
-        {
-            SERIAL_PORT_MONITOR.print("ID = ");
-            SERIAL_PORT_MONITOR.println(id, HEX);
-            checkBuf(buf);
-        }
-
         if (id == ecu1->getID())
         {
+            if (printFlag)
+            {
+                SERIAL_PORT_MONITOR.println("set massage from MG-ECU1");
+                SERIAL_PORT_MONITOR.print("ID = ");
+                SERIAL_PORT_MONITOR.println(id, HEX);
+                checkBuf(buf);
+            }
             ecu1->setMsg(buf);
             return id;
         }
         else if (id == ecu2->getID())
         {
+            if (printFlag)
+            {
+                SERIAL_PORT_MONITOR.println("set massage from MG-ECU2");
+                SERIAL_PORT_MONITOR.print("ID = ");
+                SERIAL_PORT_MONITOR.println(id, HEX);
+                checkBuf(buf);
+            }
             ecu2->setMsg(buf);
             return id;
         }
