@@ -26,7 +26,7 @@ void loop()
 {
     if (Serial.available())
     {
-        unsigned int command = read_int();
+        int command = read_int();
         Serial.println(command);
         run_command(command);
     }
@@ -62,7 +62,7 @@ void loop()
  * cmd = 8 : check massage status
  * cmd = 9 : check massage bit
  */
-void run_command(unsigned int cmd)
+void run_command(int cmd)
 {
     switch (cmd)
     {
