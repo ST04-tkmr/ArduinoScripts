@@ -78,6 +78,7 @@ unsigned char EV_ECU1::ECU::setEcuEnable(unsigned char ecuEnable)
     }
     else
     {
+        msg->ecuEnable = 0;
         return 0;
     }
 };
@@ -91,6 +92,7 @@ unsigned char EV_ECU1::ECU::setDischargeCommand(unsigned char dischargeCommand)
     }
     else
     {
+        msg->dischargeCommand = 0;
         return 0;
     }
 };
@@ -104,6 +106,7 @@ unsigned char EV_ECU1::ECU::setRequestTorque(float physicalValue)
     }
     else
     {
+        msg->requestTorque = torqueRequestPara->calcNormal(0);
         return 0;
     }
 };
@@ -273,7 +276,10 @@ unsigned long readMsgFromInverter(unsigned char printFlag)
                 SERIAL_PORT_MONITOR.println("set massage from MG-ECU1");
                 SERIAL_PORT_MONITOR.print("ID = ");
                 SERIAL_PORT_MONITOR.println(id, HEX);
+                SERIAL_PORT_MONITOR.println("----------buf----------");
                 checkBuf(buf);
+                SERIAL_PORT_MONITOR.println("-----------------------");
+                SERIAL_PORT_MONITOR.println();
             }
 
             mgecu1_p->setMsg(buf);
@@ -286,7 +292,10 @@ unsigned long readMsgFromInverter(unsigned char printFlag)
                 SERIAL_PORT_MONITOR.println("set massage from MG-ECU2");
                 SERIAL_PORT_MONITOR.print("ID = ");
                 SERIAL_PORT_MONITOR.println(id, HEX);
+                SERIAL_PORT_MONITOR.println("----------buf----------");
                 checkBuf(buf);
+                SERIAL_PORT_MONITOR.println("-----------------------");
+                SERIAL_PORT_MONITOR.println();
             }
 
             mgecu2_p->setMsg(buf);
