@@ -34,6 +34,12 @@ public:
     unsigned char setRapidDischargeRequest(unsigned char request);
 
     /**
+     * トルク指令
+     * -1000 <= torque <= 1000 (resolution 0.5 Nm)
+    */
+    unsigned char torqueRequest(float torque);
+
+    /**
      * EV-ECUへMassage送信
      * printFlag = 1 のとき, Buf をシリアルモニタに表示
      * 戻り値 : 0(成功) or 1(失敗)

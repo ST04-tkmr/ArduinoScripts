@@ -107,6 +107,33 @@ unsigned char Inverter::setRapidDischargeRequest(unsigned char request)
     return 1;
 };
 
+unsigned char Inverter::torqueRequest(float torque)
+{
+    unsigned char ws = mgecu1->getWorkingStatus();
+
+    if (ws == TORQUE_CONTROL)
+    {
+        float mamt = mgecu2->getMaxAvailableMotorTorque();
+
+        if (mamt < torque)
+        {
+            return evecu1->setRequestTorque(mamt);
+        }
+
+        float magt = mgecu2->getMaxAvailableGenerateTorque();
+
+        if (torque < magt)
+        {
+            return evecu1->setRequestTorque(magt);
+        }
+
+        return evecu1->setRequestTorque(torque);
+    }
+
+    evecu1->setRequestTorque(0);
+    return 1;
+};
+
 unsigned char Inverter::sendMsgToInverter(unsigned char printFlag)
 {
     unsigned char buf[8];
@@ -118,43 +145,30 @@ unsigned char Inverter::sendMsgToInverter(unsigned char printFlag)
 
     unsigned char result = CAN.sendMsgBuf(evecu1->getID(), 0, 8, buf);
 
-    switch (result)
+    if (printFlag)
     {
-    case CAN_OK:
-        if (printFlag)
+        switch (result)
         {
+        case CAN_OK:
             SERIAL_PORT_MONITOR.println("send massage to inverter");
             SERIAL_PORT_MONITOR.println("----------Massage----------");
             checkBuf(buf);
             SERIAL_PORT_MONITOR.println("---------------------------");
             SERIAL_PORT_MONITOR.println();
-        }
-        return 0;
-        break;
+            break;
 
-    case CAN_GETTXBFTIMEOUT:
-        if (printFlag)
-        {
+        case CAN_GETTXBFTIMEOUT:
             SERIAL_PORT_MONITOR.println("get TXBF time out");
-        }
-        return 1;
-        break;
+            break;
 
-    case CAN_SENDMSGTIMEOUT:
-        if (printFlag)
-        {
+        case CAN_SENDMSGTIMEOUT:
             SERIAL_PORT_MONITOR.println("send MSG time out");
-        }
-        return 1;
-        break;
+            break;
 
-    default:
-        if (printFlag)
-        {
+        default:
             SERIAL_PORT_MONITOR.println("send MSG fail");
+            break;
         }
-        return 1;
-        break;
     }
 
     return result;

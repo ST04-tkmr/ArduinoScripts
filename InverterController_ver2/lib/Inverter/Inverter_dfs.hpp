@@ -1,6 +1,9 @@
 #ifndef _INVERTER_DFS_H_
 #define _INVERTER_DFS_H_
 
+#define ON (1)
+#define OFF (0)
+
 #define BATTERY_VOLTAGE (270)
 #define MINIMUM_INPUT_VOLTAGE (50)
 

@@ -2,16 +2,28 @@
 #include <MsTimer2.h>
 #include "Inverter_dfs.hpp"
 #include "Inverter.hpp"
+#include "UserInterface.h"
+
+Inverter* inverter;
 
 void interrupt(void);
 
-void setup() {
+void setup()
+{
+    inverter = new Inverter();
 
     MsTimer2::set(10, interrupt);
     MsTimer2::start();
 }
 
-void loop() {
+void loop()
+{
+    if (Serial.available())
+    {
+        int command = read_int();
+        Serial.println(command);
+        run_command(command);
+    }
 }
 
 /**
@@ -30,23 +42,23 @@ void run_command(int cmd)
     switch (cmd)
     {
     case 1:
-        evecu1.setEcuEnable(1);
-        Inverter::sendMsgToInverter(1);
+        inverter->setMgecuRequest(ON);
+        inverter->sendMsgToInverter(1);
         break;
 
     case 2:
-        evecu1.setEcuEnable(0);
-        Inverter::sendMsgToInverter(1);
+        inverter->setMgecuRequest(OFF);
+        inverter->sendMsgToInverter(1);
         break;
 
     case 3:
-        evecu1.setDischargeCommand(1);
-        Inverter::sendMsgToInverter(1);
+        inverter->setRapidDischargeRequest(ON);
+        inverter->sendMsgToInverter(1);
         break;
 
     case 4:
-        evecu1.setDischargeCommand(0);
-        Inverter::sendMsgToInverter(1);
+        inverter->setRapidDischargeRequest(OFF);
+        inverter->sendMsgToInverter(1);
         break;
 
     case 5:
