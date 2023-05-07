@@ -71,4 +71,4 @@ char *read_string();
 // Read a character from the serial interface
 signed char read_char();
 
-#endif  // USERINTERFACE_H
+#endif // USERINTERFACE_H

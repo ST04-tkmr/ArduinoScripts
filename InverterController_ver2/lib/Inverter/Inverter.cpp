@@ -35,10 +35,6 @@ Inverter::~Inverter()
 
 void Inverter::init(void)
 {
-    evecu1 = new EV_ECU1::ECU(EV_ECU1_ID);
-    mgecu1 = new MG_ECU1::ECU(MG_ECU1_ID);
-    mgecu2 = new MG_ECU2::ECU(MG_ECU2_ID);
-
     SERIAL_PORT_MONITOR.begin(115200);
     while (CAN_OK != CAN.begin(CAN_500KBPS))
     {

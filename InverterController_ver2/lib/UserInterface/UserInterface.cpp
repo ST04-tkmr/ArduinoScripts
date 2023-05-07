@@ -47,39 +47,42 @@ char ui_buffer[UI_BUFFER_SIZE];
 // Read data from the serial interface into the ui_buffer
 unsigned char read_data()
 {
-  unsigned char index = 0; //index to hold current location in ui_buffer
-  int c; // single character used to store incoming keystrokes
-  while (index < UI_BUFFER_SIZE-1)
-  {
-    c = Serial.read(); //read one character
-    if (((char) c == '\r') || ((char) c == '\n')) break; // if carriage return or linefeed, stop and return data
-    if ( ((char) c == '\x7F') || ((char) c == '\x08') )   // remove previous character (decrement index) if Backspace/Delete key pressed      index--;
+    unsigned char index = 0; // index to hold current location in ui_buffer
+    int c;                   // single character used to store incoming keystrokes
+    while (index < UI_BUFFER_SIZE - 1)
     {
-      if (index > 0) index--;
+        c = Serial.read(); // read one character
+        if (((char)c == '\r') || ((char)c == '\n'))
+            break;                                      // if carriage return or linefeed, stop and return data
+        if (((char)c == '\x7F') || ((char)c == '\x08')) // remove previous character (decrement index) if Backspace/Delete key pressed      index--;
+        {
+            if (index > 0)
+                index--;
+        }
+        else if (c >= 0)
+        {
+            ui_buffer[index++] = (char)c; // put character into ui_buffer
+        }
     }
-    else if (c >= 0)
+    ui_buffer[index] = '\0'; // terminate string with NULL
+
+    if ((char)c == '\r') // if the last character was a carriage return, also clear linefeed if it is next character
     {
-      ui_buffer[index++]=(char) c; // put character into ui_buffer
+        delay(10); // allow 10ms for linefeed to appear on serial pins
+        if (Serial.peek() == '\n')
+            Serial.read(); // if linefeed appears, read it and throw it away
     }
-  }
-  ui_buffer[index]='\0';  // terminate string with NULL
 
-  if ((char) c == '\r')    // if the last character was a carriage return, also clear linefeed if it is next character
-  {
-    delay(10);  // allow 10ms for linefeed to appear on serial pins
-    if (Serial.peek() == '\n') Serial.read(); // if linefeed appears, read it and throw it away
-  }
-
-  return index; // return number of characters, not including null terminator
+    return index; // return number of characters, not including null terminator
 }
 
 // Read a float value from the serial interface
 float read_float()
 {
-  float data;
-  read_data();
-  data = atof(ui_buffer);
-  return(data);
+    float data;
+    read_data();
+    data = atof(ui_buffer);
+    return (data);
 }
 
 // Read an integer from the serial interface.
@@ -91,29 +94,33 @@ float read_float()
 // Binary:  B10001 (leading B prefix)
 int read_int()
 {
-  int data;
-  read_data();
-  if (ui_buffer[0] == 'm')
-    return('m');
-  if ((ui_buffer[0] == 'B') || (ui_buffer[0] == 'b'))
-  {
-    data = strtol(ui_buffer+1, NULL, 2);
-  }
-  else
-    data = strtol(ui_buffer, NULL, 0);
-  return(data);
+    int data;
+    read_data();
+    if (ui_buffer[0] == 'm')
+        return ('m');
+    if (ui_buffer[0] == 's')
+        return ('s');
+    if (ui_buffer[0] == 'q')
+        return ('q');
+    if ((ui_buffer[0] == 'B') || (ui_buffer[0] == 'b'))
+    {
+        data = strtol(ui_buffer + 1, NULL, 2);
+    }
+    else
+        data = strtol(ui_buffer, NULL, 0);
+    return (data);
 }
 
 // Read a string from the serial interface.  Returns a pointer to the ui_buffer.
 char *read_string()
 {
-  read_data();
-  return(ui_buffer);
+    read_data();
+    return (ui_buffer);
 }
 
 // Read a character from the serial interface
 signed char read_char()
 {
-  read_data();
-  return(ui_buffer[0]);
+    read_data();
+    return (ui_buffer[0]);
 }
