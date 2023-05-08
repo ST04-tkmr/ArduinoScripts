@@ -5,6 +5,7 @@
 #include "UserInterface.h"
 
 unsigned char torqueControlFlag;
+unsigned char inputTorqueMode;
 Inverter *inverter;
 
 void run_command(unsigned int);
@@ -14,6 +15,7 @@ void interrupt(void);
 void setup()
 {
     torqueControlFlag = 0;
+    inputTorqueMode = 0;
 
     inverter = new Inverter();
     inverter->init();
@@ -33,65 +35,67 @@ void loop()
 }
 
 /**
- * cmd = 1 : set MG-ECU Enable to ON and send massage
- * cmd = 2 : set MG-ECU Enable to OFF and send massage
- * cmd = 3 : set Rapid Discharge Command to Active and send massage
- * cmd = 4 : set Rapid Discharge Command to Inactive and send massage
+ * cmd = e : set MG-ECU Enable to ON and send massage
+ * cmd = d : set MG-ECU Enable to OFF and send massage
+ *
+ * cmd = a : set Rapid Discharge Command to Active and send massage
+ * cmd = i : set Rapid Discharge Command to Inactive and send massage
+ *
+ * cmd = r : Read massage from MG-ECU
+ * cmd = c : check massage status
+ * cmd = C : check massage bit
+ *
  * cmd = s : start Torque Control
  * cmd = q : quit Torque Control
- * cmd = 5 : Read massage from MG-ECU
- * cmd = 6 : check massage status
- * cmd = 7 : check massage bit
+ * cmd = t : toggle input torque mode
  */
 void run_command(unsigned int cmd)
 {
     switch (cmd)
     {
-    case 1:
+    case 'e':
         inverter->setMgecuRequest(ON);
         inverter->sendMsgToInverter(1);
         break;
 
-    case 2:
+    case 'd':
         inverter->setMgecuRequest(OFF);
         inverter->sendMsgToInverter(1);
         break;
 
-    case 3:
+    case 'a':
         inverter->setRapidDischargeRequest(ON);
         inverter->sendMsgToInverter(1);
         break;
 
-    case 4:
+    case 'i':
         inverter->setRapidDischargeRequest(OFF);
         inverter->sendMsgToInverter(1);
         break;
 
-    case 5:
+    case 'r':
         inverter->readMsgFromInverter(1);
         break;
 
-    case 6:
+    case 'c':
         inverter->checkMsg(EV_ECU1_ID);
         inverter->checkMsg(MG_ECU1_ID);
         inverter->checkMsg(MG_ECU2_ID);
         break;
 
-    case 7:
-        inverter->checkMsgBit(EV_ECU1_ID);
-        inverter->checkMsgBit(MG_ECU1_ID);
-        inverter->checkMsgBit(MG_ECU2_ID);
+    case 's':
+        torqueControlFlag = 1;
+        break;
+
+    case 'q':
+        torqueControlFlag = 0;
+        break;
+
+    case 't':
+        inputTorqueMode = !inputTorqueMode;
         break;
 
     default:
-        if (cmd == 's')
-        {
-            torqueControlFlag = 1;
-        }
-        else if (cmd == 'q')
-        {
-            torqueControlFlag = 0;
-        }
         break;
     }
 };

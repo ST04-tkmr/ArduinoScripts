@@ -96,12 +96,43 @@ int read_int()
 {
     int data;
     read_data();
+    switch (ui_buffer[0])
+    {
+    case 'e':
+        return 'e';
+
+    case 'd':
+        return 'd';
+
+    case 'a':
+        return 'a';
+
+    case 'i':
+        return 'i';
+
+    case 'r':
+        return 'r';
+
+    case 'c':
+        return 'c';
+
+    case 'C':
+        return 'C';
+
+    case 's':
+        return 's';
+
+    case 'q':
+        return 'q';
+
+    case 't':
+        return 't';
+
+    default:
+        break;
+    }
     if (ui_buffer[0] == 'm')
         return ('m');
-    if (ui_buffer[0] == 's')
-        return ('s');
-    if (ui_buffer[0] == 'q')
-        return ('q');
     if ((ui_buffer[0] == 'B') || (ui_buffer[0] == 'b'))
     {
         data = strtol(ui_buffer + 1, NULL, 2);
