@@ -45,6 +45,8 @@ void loop()
  *
  * cmd = s : start Torque Control
  * cmd = q : quit Torque Control
+ *
+ * cmd = m : print menu
  */
 void run_command(unsigned int cmd)
 {
@@ -76,6 +78,12 @@ void run_command(unsigned int cmd)
         inverter->checkMsg(MG_ECU2_ID);
         break;
 
+    case 'C':
+        inverter->checkMsgBit(EV_ECU1_ID);
+        inverter->checkMsgBit(MG_ECU1_ID);
+        inverter->checkMsgBit(MG_ECU2_ID);
+        break;
+
     case 's':
         torqueControlFlag = 1;
         Serial.println("torque control start");
@@ -85,6 +93,19 @@ void run_command(unsigned int cmd)
         torqueControlFlag = 0;
         inverter->torqueRequest(0);
         Serial.println("torque control stop");
+        break;
+
+    case 'm':
+        Serial.println("e : set MG-ECU Enable");
+        Serial.println("d : set MG-ECU Disable");
+        Serial.println("a : rapid discharge request ON");
+        Serial.println("i : rapid discharge request OFF");
+        Serial.println("r : read massage from inverter");
+        Serial.println("c : check massage");
+        Serial.println("C : check massage bit");
+        Serial.println("s : start torque control");
+        Serial.println("q : quit torque control");
+        Serial.println("m : print menu");
         break;
 
     default:
