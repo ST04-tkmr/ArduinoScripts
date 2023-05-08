@@ -52,7 +52,7 @@ unsigned char Inverter::setMgecuRequest(unsigned char request)
 
     switch (ws)
     {
-    case PRECHARGE:
+    case WORKING_PRECHARGE:
         if (MINIMUM_INPUT_VOLTAGE <= idcv)
         {
             if ((BATTERY_VOLTAGE - idcv) < (BATTERY_VOLTAGE / 10))
@@ -72,7 +72,7 @@ unsigned char Inverter::setMgecuRequest(unsigned char request)
         }
         break;
 
-    case TORQUE_CONTROL:
+    case WORKING_TORQUE_CONTROL:
         if (ms < ECU_DISABLE_MOTOR_SPEED)
         {
             return evecu1->setEcuEnable(request);
@@ -94,7 +94,7 @@ unsigned char Inverter::setRapidDischargeRequest(unsigned char request)
 {
     unsigned char ws = mgecu1->getWorkingStatus();
 
-    if (ws == RAPID_DISCHARGE)
+    if (ws == WORKING_RAPID_DISCHARGE)
     {
         return evecu1->setDischargeCommand(request);
     }
@@ -107,7 +107,7 @@ unsigned char Inverter::torqueRequest(float torque)
 {
     unsigned char ws = mgecu1->getWorkingStatus();
 
-    if (ws == TORQUE_CONTROL)
+    if (ws == WORKING_TORQUE_CONTROL)
     {
         float mamt = mgecu2->getMaxAvailableMotorTorque();
 
