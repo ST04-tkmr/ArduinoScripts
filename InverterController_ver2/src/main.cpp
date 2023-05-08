@@ -5,7 +5,6 @@
 #include "UserInterface.h"
 
 unsigned char torqueControlFlag;
-unsigned char inputTorqueMode;
 Inverter *inverter;
 
 void run_command(unsigned int);
@@ -15,7 +14,6 @@ void interrupt(void);
 void setup()
 {
     torqueControlFlag = 0;
-    inputTorqueMode = 0;
 
     inverter = new Inverter();
     inverter->init();
@@ -35,11 +33,11 @@ void loop()
 }
 
 /**
- * cmd = e : set MG-ECU Enable to ON and send massage
- * cmd = d : set MG-ECU Enable to OFF and send massage
+ * cmd = e : set MG-ECU Enable to ON
+ * cmd = d : set MG-ECU Enable to OFF
  *
- * cmd = a : set Rapid Discharge Command to Active and send massage
- * cmd = i : set Rapid Discharge Command to Inactive and send massage
+ * cmd = a : set Rapid Discharge Command to Active
+ * cmd = i : set Rapid Discharge Command to Inactive
  *
  * cmd = r : Read massage from MG-ECU
  * cmd = c : check massage status
@@ -47,7 +45,6 @@ void loop()
  *
  * cmd = s : start Torque Control
  * cmd = q : quit Torque Control
- * cmd = t : toggle input torque mode
  */
 void run_command(unsigned int cmd)
 {
@@ -55,22 +52,18 @@ void run_command(unsigned int cmd)
     {
     case 'e':
         inverter->setMgecuRequest(ON);
-        inverter->sendMsgToInverter(1);
         break;
 
     case 'd':
         inverter->setMgecuRequest(OFF);
-        inverter->sendMsgToInverter(1);
         break;
 
     case 'a':
         inverter->setRapidDischargeRequest(ON);
-        inverter->sendMsgToInverter(1);
         break;
 
     case 'i':
         inverter->setRapidDischargeRequest(OFF);
-        inverter->sendMsgToInverter(1);
         break;
 
     case 'r':
@@ -85,14 +78,13 @@ void run_command(unsigned int cmd)
 
     case 's':
         torqueControlFlag = 1;
+        Serial.println("torque control start");
         break;
 
     case 'q':
         torqueControlFlag = 0;
-        break;
-
-    case 't':
-        inputTorqueMode = !inputTorqueMode;
+        inverter->torqueRequest(0);
+        Serial.println("torque control stop");
         break;
 
     default:

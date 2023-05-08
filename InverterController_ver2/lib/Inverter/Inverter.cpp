@@ -53,8 +53,12 @@ unsigned char Inverter::setMgecuRequest(unsigned char request)
     switch (ws)
     {
     case WORKING_PRECHARGE:
+
+        // 入力最低電圧
         if (MINIMUM_INPUT_VOLTAGE <= idcv)
         {
+
+            // プリチャージ完了条件
             if ((BATTERY_VOLTAGE - idcv) < (BATTERY_VOLTAGE / 10))
             {
                 return evecu1->setEcuEnable(request);
@@ -73,6 +77,8 @@ unsigned char Inverter::setMgecuRequest(unsigned char request)
         break;
 
     case WORKING_TORQUE_CONTROL:
+
+        // torque control 終了条件
         if (ms < ECU_DISABLE_MOTOR_SPEED)
         {
             return evecu1->setEcuEnable(request);
