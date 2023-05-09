@@ -11,6 +11,7 @@ private:
     EV_ECU1::ECU *evecu1;
     MG_ECU1::ECU *mgecu1;
     MG_ECU2::ECU *mgecu2;
+    unsigned short batteryVoltage;
 
 public:
     Inverter();
@@ -18,6 +19,12 @@ public:
 
     // CAN通信初期化処理
     void init(void);
+
+    /**
+     * バッテリー電圧をセット
+     * 280 <= batVol <= 400
+    */
+    unsigned char setBatVol(unsigned short batVol);
 
     /**
      * MG-ECU実行要求をON or OFFにセット
@@ -36,6 +43,8 @@ public:
     /**
      * トルク指令
      * -1000 <= torque <= 1000 (resolution 0.5 Nm)
+     * トルク制限(モータによる)
+     * -60 <= torque <= 60
     */
     unsigned char torqueRequest(float torque);
 

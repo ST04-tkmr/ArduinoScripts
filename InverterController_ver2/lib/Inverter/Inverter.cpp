@@ -44,6 +44,18 @@ void Inverter::init(void)
     SERIAL_PORT_MONITOR.println("CAN init OK!");
 };
 
+unsigned char Inverter::setBatVol(unsigned short batVol)
+{
+    if (MINIMUM_BATTERY_VOLTAGE <= batVol && batVol <= MAXIMUM_BATTERY_VOLTAGE)
+    {
+        batteryVoltage = batVol;
+        return 0;
+    }
+
+    batteryVoltage = 0;
+    return 1;
+};
+
 unsigned char Inverter::setMgecuRequest(unsigned char request)
 {
     unsigned char ws = mgecu1->getWorkingStatus();
@@ -54,12 +66,12 @@ unsigned char Inverter::setMgecuRequest(unsigned char request)
     {
     case WORKING_PRECHARGE:
 
-        // 入力最低電圧
-        if (MINIMUM_INPUT_VOLTAGE <= idcv)
+        // 入力最低電圧, バッテリー電圧
+        if (MINIMUM_INPUT_VOLTAGE <= idcv && batteryVoltage != 0)
         {
 
             // プリチャージ完了条件
-            if ((BATTERY_VOLTAGE - idcv) < (BATTERY_VOLTAGE / 10))
+            if ((batteryVoltage - idcv) < (batteryVoltage / 10))
             {
                 return evecu1->setEcuEnable(request);
             }

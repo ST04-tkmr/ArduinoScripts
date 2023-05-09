@@ -17,6 +17,7 @@ void setup()
 
     inverter = new Inverter();
     inverter->init();
+    inverter->setBatVol(270);
 
     MsTimer2::set(10, interrupt);
     MsTimer2::start();

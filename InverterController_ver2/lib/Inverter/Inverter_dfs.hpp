@@ -4,7 +4,8 @@
 #define ON (1)
 #define OFF (0)
 
-#define BATTERY_VOLTAGE (270)
+#define MINIMUM_BATTERY_VOLTAGE (250)
+#define MAXIMUM_BATTERY_VOLTAGE (400)
 #define MINIMUM_INPUT_VOLTAGE (50)
 
 // ID
