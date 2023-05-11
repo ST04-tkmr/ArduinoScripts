@@ -9,6 +9,7 @@ unsigned char torqueControlFlag;
 Inverter *inverter;
 unsigned short val;
 float torque;
+unsigned short interval;
 
 void run_command(unsigned int);
 
@@ -24,6 +25,7 @@ void setup()
 
     val = 0;
     torque = 0;
+    interval = 0;
 
     pinMode(A0, INPUT);
 
@@ -43,9 +45,9 @@ void loop()
     if (torqueControlFlag)
     {
         val = analogRead(A0);
-        if (0.5f <= val * 0.0049f && val * 0.0049f <= 0.45f)
+        if (0.5f <= val * 0.0049f && val * 0.0049f <= 4.5f)
         {
-            torque = val / (1023 / 20.0f);
+            torque = val / (1023 / 20.0f) - 2;
         }
         else
         {
@@ -150,4 +152,9 @@ void interrupt(void)
 {
     inverter->readMsgFromInverter(0);
     inverter->sendMsgToInverter(0);
+    interval++;
+    if (interval >= 50)
+    {
+        interval = 0;
+    }
 }
