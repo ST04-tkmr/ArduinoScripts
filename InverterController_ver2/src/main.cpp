@@ -3,9 +3,12 @@
 #include "Inverter_dfs.hpp"
 #include "Inverter.hpp"
 #include "UserInterface.h"
+#include "Accel.hpp"
 
 unsigned char torqueControlFlag;
 Inverter *inverter;
+unsigned short val;
+float torque;
 
 void run_command(unsigned int);
 
@@ -19,6 +22,11 @@ void setup()
     inverter->init();
     inverter->setBatVol(270);
 
+    val = 0;
+    torque = 0;
+
+    pinMode(A0, INPUT);
+
     MsTimer2::set(10, interrupt);
     MsTimer2::start();
 }
@@ -30,6 +38,20 @@ void loop()
         unsigned int command = read_int();
         Serial.println(command);
         run_command(command);
+    }
+
+    if (torqueControlFlag)
+    {
+        val = analogRead(A0);
+        if (0.5f <= val * 0.0049f && val * 0.0049f <= 0.45f)
+        {
+            torque = val / (1023 / 20.0f);
+        }
+        else
+        {
+            torque = 0;
+        }
+        inverter->torqueRequest(torque);
     }
 }
 
@@ -54,19 +76,19 @@ void run_command(unsigned int cmd)
     switch (cmd)
     {
     case 'e':
-        inverter->setMgecuRequest(ON);
+        inverter->setMgecuRequestON(270);
         break;
 
     case 'd':
-        inverter->setMgecuRequest(OFF);
+        inverter->setMgecuRequestOFF();
         break;
 
     case 'a':
-        inverter->setRapidDischargeRequest(ON);
+        inverter->setRapidDischargeRequestON();
         break;
 
     case 'i':
-        inverter->setRapidDischargeRequest(OFF);
+        inverter->setRapidDischargeRequestOFF();
         break;
 
     case 'r':
@@ -86,14 +108,24 @@ void run_command(unsigned int cmd)
         break;
 
     case 's':
-        torqueControlFlag = 1;
-        Serial.println("torque control start");
+        if (inverter->torqueRequest(0))
+        {
+            Serial.println("working status is not torque control");
+        }
+        else
+        {
+            torqueControlFlag = 1;
+            Serial.println("torque control start");
+        }
         break;
 
     case 'q':
-        torqueControlFlag = 0;
-        inverter->torqueRequest(0);
-        Serial.println("torque control stop");
+        if (torqueControlFlag)
+        {
+            torqueControlFlag = 0;
+            inverter->torqueRequest(0);
+            Serial.println("torque control stop");
+        }
         break;
 
     case 'm':
@@ -112,10 +144,10 @@ void run_command(unsigned int cmd)
     default:
         break;
     }
-};
+}
 
 void interrupt(void)
 {
     inverter->readMsgFromInverter(0);
     inverter->sendMsgToInverter(0);
-};
+}

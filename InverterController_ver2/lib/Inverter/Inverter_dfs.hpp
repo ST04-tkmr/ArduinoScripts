@@ -14,9 +14,10 @@
 #define MG_ECU2_ID (0x321)
 
 // PWM
-#define PWM_SHORT_CIRCUIT (0b000)
-#define PWM_FREE_WHEEL (0b001)
-#define PWM_RUN (0b010)
+#define PWM_SHORT_CIRCUIT (0b00)
+#define PWM_FREE_WHEEL (0b01)
+#define PWM_RUN (0b10)
+#define PWM_RESERVED (0b11)
 
 // Working Status
 #define WORKING_INIT (0b000)

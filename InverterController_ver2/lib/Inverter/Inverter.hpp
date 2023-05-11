@@ -27,18 +27,28 @@ public:
     unsigned char setBatVol(unsigned short batVol);
 
     /**
-     * MG-ECU実行要求をON or OFFにセット
-     * request = 0 or 1
-     * 起動・終了シーケンスにしたがってON or OFFにしないとCritical Errorが発生する
+     * MG-ECU実行要求をONにセット
+     * batVol : バッテリー電圧
+     * 終了シーケンスにしたがってONにしないとCritical Errorが発生する
      */
-    unsigned char setMgecuRequest(unsigned char request);
+    unsigned char setMgecuRequestON(unsigned short batVol);
 
     /**
-     * 平滑コンデンサ放電要求をON or OFFにセット
-     * request = 0 or 1
+     * MG-ECU実行要求をOFFにセット
+     * 終了シーケンスにしたがってOFFにしないとCritical Errorが発生する
+    */
+    unsigned char setMgecuRequestOFF();
+
+    /**
+     * 平滑コンデンサ放電要求をONにセット
      * 放電要求をONにする前にAIRをOFFする
      */
-    unsigned char setRapidDischargeRequest(unsigned char request);
+    unsigned char setRapidDischargeRequestON();
+
+    /**
+     * 平滑コンデンサ放電要求をOFFにセット
+    */
+    unsigned char setRapidDischargeRequestOFF();
 
     /**
      * トルク指令

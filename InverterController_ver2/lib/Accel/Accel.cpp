@@ -1,31 +1,53 @@
 #include "Accel.hpp"
 #include <stdlib.h>
 
-unsigned short APPS::calcDev(unsigned char index)
+unsigned short Accel::calcDev(unsigned char index)
 {
     if (index == 0 || index == 1)
     {
         if (avr < 1023 / 2)
         {
-            return abs((val[index] - avr) / (1023 - avr)) * 100;
+            return abs((val[index] - avr) / static_cast<float>((1023 - avr))) * 100;
         }
 
-        return abs((val[index] - avr) / avr) * 100;
+        return abs((val[index] - avr) / static_cast<float>(avr)) * 100;
     }
 
-    return 1;
-};
+    return 100;
+}
 
-APPS::APPS()
+void Accel::updateTorqueOutputFlag(void)
 {
-    val[0] = 0;
-    val[1] = 0;
-    avr = 0;
-    deviation[0] = 0;
-    deviation[1] = 0;
-};
+    if (torqueOutputFlag)
+    {
+        if (deviation[0] < 10 && deviation[1] < 10)
+        {
+            return;
+        }
 
-unsigned short APPS::getDeviation(unsigned char index)
+        torqueOutputFlag = 0;
+        return;
+    }
+
+    if (deviation[0] < 10 && deviation[1] < 10)
+    {
+        if (
+            val[0] * 0.0049f < 0.7f &&
+            val[1] * 0.0049f < 0.7f
+        )
+        {
+            torqueOutputFlag = 1;
+            return;
+        }
+    }
+}
+
+Accel::Accel()
+    : val({0, 0}), avr(0), deviation({0, 0}), torqueOutputFlag(0)
+{
+}
+
+unsigned short Accel::getDeviation(unsigned char index)
 {
     if (index == 0 || index == 1)
     {
@@ -34,7 +56,8 @@ unsigned short APPS::getDeviation(unsigned char index)
 
     return 1;
 }
-unsigned short APPS::getValue(unsigned char index)
+
+unsigned short Accel::getValue(unsigned char index)
 {
     if (index == 0 || index == 1)
     {
@@ -42,9 +65,9 @@ unsigned short APPS::getValue(unsigned char index)
     }
 
     return 0;
-};
+}
 
-unsigned char APPS::setValue(unsigned short *value)
+unsigned char Accel::setValue(unsigned short *value)
 {
     for (int i = 0; i < 2; i++)
     {
@@ -58,5 +81,7 @@ unsigned char APPS::setValue(unsigned short *value)
     deviation[0] = calcDev(0);
     deviation[1] = calcDev(1);
 
+    updateTorqueOutputFlag();
+
     return 0;
-};
+}
