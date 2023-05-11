@@ -68,7 +68,7 @@ unsigned char Inverter::setMgecuRequestON(unsigned short batVol)
     case WORKING_PRECHARGE:
 
         // 入力最低電圧
-        if (MINIMUM_INPUT_VOLTAGE <= idcv)
+        if (MINIMUM_INPUT_VOLTAGE <= idcv && batteryVoltage != 0)
         {
 
             // プリチャージ完了条件

@@ -78,19 +78,41 @@ void run_command(unsigned int cmd)
     switch (cmd)
     {
     case 'e':
-        inverter->setMgecuRequestON(270);
+        if (inverter->setMgecuRequestON(270))
+        {
+            Serial.println("MG-ECU Enable request fail");
+        }
+        else
+        {
+            Serial.println("MG-ECU Enable request success");
+        }
         break;
 
     case 'd':
-        inverter->setMgecuRequestOFF();
+        if (inverter->setMgecuRequestOFF())
+        {
+            Serial.println("MG-ECU Disable request fail");
+        }
+        else
+        {
+            Serial.println("MG-ECU Disable request success");
+        }
         break;
 
     case 'a':
-        inverter->setRapidDischargeRequestON();
+        if (inverter->setRapidDischargeRequestON())
+        {
+            Serial.println("warking status is not rapid discharge");
+        }
+        else
+        {
+            Serial.println("rapid discharge ON request success");
+        }
         break;
 
     case 'i':
         inverter->setRapidDischargeRequestOFF();
+        Serial.println("rapid discharge OFF request done");
         break;
 
     case 'r':
