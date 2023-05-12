@@ -5,9 +5,13 @@
 #include "UserInterface.h"
 #include "Accel.hpp"
 
+#define ACCEL_SENSOR1 (A0)
+#define ACCEL_SENSOR2 (A1)
+
 unsigned char torqueControlFlag;
 Inverter *inverter;
-unsigned short val;
+unsigned short val[2];
+Accel *accel;
 float torque;
 unsigned short interval;
 
@@ -23,18 +27,24 @@ void setup()
     inverter->init();
     inverter->setBatVol(270);
 
-    val = 0;
+    accel = new Accel();
+
+    val[0] = 0;
+    val[1] = 0;
     torque = 0;
     interval = 0;
 
-    pinMode(A0, INPUT);
+    pinMode(ACCEL_SENSOR1, INPUT);
+    pinMode(ACCEL_SENSOR2, INPUT);
 
-    MsTimer2::set(10, interrupt);
+    MsTimer2::set(500, interrupt);
     MsTimer2::start();
 }
 
 void loop()
 {
+    inverter->readMsgFromInverter(0);
+
     if (Serial.available())
     {
         unsigned int command = read_int();
@@ -44,16 +54,11 @@ void loop()
 
     if (torqueControlFlag)
     {
-        val = analogRead(A0);
-        if (0.5f <= val * 0.0049f && val * 0.0049f <= 4.5f)
-        {
-            torque = val / (1023 / 20.0f) - 2;
-        }
-        else
-        {
-            torque = 0;
-        }
-        inverter->torqueRequest(torque);
+        val[0] = analogRead(ACCEL_SENSOR1);
+        val[1] = analogRead(ACCEL_SENSOR2);
+        accel->setValue(val);
+        inverter->torqueRequest(accel->getTorque());
+        inverter->sendMsgToInverter(0);
     }
 }
 
@@ -85,6 +90,8 @@ void run_command(unsigned int cmd)
         else
         {
             Serial.println("MG-ECU Enable request success");
+
+            inverter->sendMsgToInverter(1);
         }
         break;
 
@@ -96,6 +103,8 @@ void run_command(unsigned int cmd)
         else
         {
             Serial.println("MG-ECU Disable request success");
+
+            inverter->sendMsgToInverter(1);
         }
         break;
 
@@ -107,12 +116,16 @@ void run_command(unsigned int cmd)
         else
         {
             Serial.println("rapid discharge ON request success");
+
+            inverter->sendMsgToInverter(1);
         }
         break;
 
     case 'i':
         inverter->setRapidDischargeRequestOFF();
         Serial.println("rapid discharge OFF request done");
+
+        inverter->sendMsgToInverter(1);
         break;
 
     case 'r':
@@ -149,6 +162,8 @@ void run_command(unsigned int cmd)
             torqueControlFlag = 0;
             inverter->torqueRequest(0);
             Serial.println("torque control stop");
+
+            inverter->sendMsgToInverter(1);
         }
         break;
 
@@ -172,8 +187,13 @@ void run_command(unsigned int cmd)
 
 void interrupt(void)
 {
-    inverter->readMsgFromInverter(0);
-    inverter->sendMsgToInverter(0);
+    if (torqueControlFlag)
+    {
+        Serial.println(accel->getTorqueOutputFlag());
+        Serial.println(accel->getValue(0));
+        Serial.println(accel->getValue(1));
+        Serial.println(accel->getTorque());
+    }
     interval++;
     if (interval >= 50)
     {
