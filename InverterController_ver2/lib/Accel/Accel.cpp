@@ -44,6 +44,42 @@ float Accel::calcTorque()
 
 void Accel::updateTorqueOutputFlag(void)
 {
+    /*
+    lastDevError = devError;
+    devError = (chatt[2] & chatt[1] & chatt[0]);
+    chatt[2] = chatt[1];
+    chatt[1] = chatt[0];
+    chatt[0] = deviation[0] > THRESHOLD_DEVIATION & deviation[1] > THRESHOLD_DEVIATION;
+    if (lastDevError == 0 && devError == 1)
+    {
+        devErrorFlag = 1;
+    }
+
+    if (torqueOutputFlag)
+    {
+        if (devErrorFlag)
+        {
+            torqueOutputFlag = 0;
+            return;
+        }
+        return;
+    }
+
+    if (devErrorFlag)
+    {
+        if (val[0] * 0.0049f < 0.7f && val[1] * 0.0049f < 0.7f)
+        {
+            if (lastDevError == 0 && devError == 0)
+            {
+                devErrorFlag = 0;
+                return;
+            }
+            return;
+        }
+        return;
+    }
+    */
+
     if (torqueOutputFlag)
     {
         if (deviation[0] > THRESHOLD_DEVIATION && deviation[1] > THRESHOLD_DEVIATION)
@@ -74,7 +110,7 @@ void Accel::updateTorqueOutputFlag(void)
 }
 
 Accel::Accel()
-    : val({0, 0}), avr(0), devErrorFlag(0), deviation({0, 0}), torqueOutputFlag(0), torque(0)
+    : val({0, 0}), avr(0), devErrorFlag(1), deviation({0, 0}), lastDevError(0), devError(0), chatt({1, 1, 1}), torqueOutputFlag(0), torque(0)
 {
 }
 

@@ -8,6 +8,9 @@ private:
     unsigned short avr;             // 2つのセンサ値の平均
     unsigned char devErrorFlag;     // 偏差異常フラグ
     unsigned short deviation[2];    // 偏差[%]
+    unsigned char lastDevError;     // ノイズ対策
+    unsigned char devError;         // ノイズ対策
+    unsigned char chatt[3];         // ノイズ対策
     unsigned char torqueOutputFlag; // トルク出力フラグ
     float torque;                   // アクセル開度から計算したトルク
 
