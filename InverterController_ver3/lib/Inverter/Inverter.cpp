@@ -56,35 +56,50 @@ void Inverter::runInverter(unsigned char *flags, unsigned short batVol, float to
 
     setBatVol(batVol);
 
-    switch (ws)
+    // if shutdown button is pushed
+    if (shutdownFlag)
     {
-    case WORKING_PRECHARGE:
-        // 最低入力電圧チェック & バッテリー電圧チェック
-        if (MINIMUM_INPUT_VOLTAGE <= idcv && batteryVoltage != 0)
+        *airFlag = 0;
+        *torqueControlFlag = 0;
+        evecu1->setRequestTorque(0);
+        evecu1->setEcuEnable(0);
+        switch (ws)
         {
-            // プリチャージ完了チェック
-            if ((batteryVoltage - idcv) < (batteryVoltage / 10))
-            {
-                // MG-ECU実行要求からAIR ON
-                if (!evecu1->setEcuEnable(1))
+            case WORKING_RAPID_DISCHARGE:
+                if (!evecu1->getDischargeCommand())
                 {
-                    *airFlag = 1;
+                    evecu1->setDischargeCommand(1);
+                }
+                break;
+
+                case WORKING_STANDBY:
+                if (evecu1->getDischargeCommand())
+                {
+                    evecu1->setDischargeCommand(0);
+                }
+        }
+    }
+    else
+    {
+        switch (ws)
+        {
+        case WORKING_PRECHARGE:
+            // 最低入力電圧チェック & バッテリー電圧チェック
+            if (MINIMUM_INPUT_VOLTAGE <= idcv && batteryVoltage != 0)
+            {
+                // プリチャージ完了チェック
+                if ((batteryVoltage - idcv) < (batteryVoltage / 10))
+                {
+                    // MG-ECU実行要求からAIR ON
+                    if (!evecu1->setEcuEnable(1))
+                    {
+                        *airFlag = 1;
+                    }
                 }
             }
-        }
-        break;
+            break;
 
-    case WORKING_TORQUE_CONTROL:
-        // if shutdown button is pushed
-        if (shutdownFlag)
-        {
-            *airFlag = 0;
-            *torqueControlFlag = 0;
-            evecu1->setRequestTorque(0);
-            evecu1->setEcuEnable(0);
-        }
-        else
-        {
+        case WORKING_TORQUE_CONTROL:
             // Ready to Drive
             if (driveFlag)
             {
@@ -97,35 +112,43 @@ void Inverter::runInverter(unsigned char *flags, unsigned short batVol, float to
                     *torqueControlFlag = 1;
                 }
             }
-        }
-        break;
+            break;
 
-    case WORKING_RAPID_DISCHARGE:
-        if (!evecu1->getDischargeCommand())
-        {
-            evecu1->setDischargeCommand(1);
-        }
-        break;
+        case WORKING_RAPID_DISCHARGE:
+            if (!evecu1->getDischargeCommand())
+            {
+                if (*airFlag || *torqueControlFlag)
+                {
+                    *airFlag = 0;
+                    *torqueControlFlag = 0;
+                }
+                else
+                {
+                    evecu1->setDischargeCommand(1);
+                }
+            }
+            break;
 
-    case WORKING_STANDBY:
-        if (evecu1->getEcuEnable())
-        {
-            evecu1->setEcuEnable(0);
-        }
+        case WORKING_STANDBY:
+            if (evecu1->getEcuEnable())
+            {
+                evecu1->setEcuEnable(0);
+            }
 
-        if (evecu1->getDischargeCommand())
-        {
-            evecu1->setDischargeCommand(0);
-        }
+            if (evecu1->getDischargeCommand())
+            {
+                evecu1->setDischargeCommand(0);
+            }
 
-        if (evecu1->getRequestTorque() != 0.0f)
-        {
-            evecu1->setRequestTorque(0.0f);
-        }
-        break;
+            if (evecu1->getRequestTorque() != 0.0f)
+            {
+                evecu1->setRequestTorque(0.0f);
+            }
+            break;
 
-    default:
-        break;
+        default:
+            break;
+        }
     }
 }
 
