@@ -21,10 +21,10 @@ public:
     void init(void);
 
     /**
-     * Flags[0] = airFlag
-     * Flags[1] = torqueControlFlag
-     * Flags[2] = shutdownFlag
-     * Flags[3] = driveFlag
+     * flags[0] = airFlag
+     * flags[1] = torqueControlFlag
+     * flags[2] = shutdownFlag
+     * flags[3] = driveFlag
     */
     void runInverter(unsigned char* flags, unsigned short batVol, float torque);
 

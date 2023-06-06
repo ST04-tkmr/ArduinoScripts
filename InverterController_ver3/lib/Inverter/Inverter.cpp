@@ -65,18 +65,18 @@ void Inverter::runInverter(unsigned char *flags, unsigned short batVol, float to
         evecu1->setEcuEnable(0);
         switch (ws)
         {
-            case WORKING_RAPID_DISCHARGE:
-                if (!evecu1->getDischargeCommand())
-                {
-                    evecu1->setDischargeCommand(1);
-                }
-                break;
+        case WORKING_RAPID_DISCHARGE:
+            if (!evecu1->getDischargeCommand())
+            {
+                evecu1->setDischargeCommand(1);
+            }
+            break;
 
-                case WORKING_STANDBY:
-                if (evecu1->getDischargeCommand())
-                {
-                    evecu1->setDischargeCommand(0);
-                }
+        case WORKING_STANDBY:
+            if (evecu1->getDischargeCommand())
+            {
+                evecu1->setDischargeCommand(0);
+            }
         }
     }
     else
