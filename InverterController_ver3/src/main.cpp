@@ -89,6 +89,7 @@ void loop()
     else
     {
         flags[3] = 0;
+        driveSW->resetFlag();
     }
 
     inverter->runInverter(flags, 270, torque);
