@@ -77,6 +77,7 @@ void Inverter::runInverter(unsigned char *flags, unsigned short batVol, float to
             {
                 evecu1->setDischargeCommand(0);
             }
+            break;
         }
     }
     else
@@ -130,6 +131,12 @@ void Inverter::runInverter(unsigned char *flags, unsigned short batVol, float to
             break;
 
         case WORKING_STANDBY:
+            if (*airFlag || *torqueControlFlag)
+            {
+                *airFlag = 0;
+                torqueControlFlag = 0;
+            }
+
             if (evecu1->getEcuEnable())
             {
                 evecu1->setEcuEnable(0);

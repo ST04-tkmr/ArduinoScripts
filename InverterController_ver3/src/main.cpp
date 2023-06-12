@@ -76,8 +76,8 @@ void loop()
     driveSW->updateState(digitalRead(READY_TO_DRIVE_SW));
     flags[3] = driveSW->getSWFlag();
 
-    // if driveFlag and airFlag
-    if (flags[3] && flags[0])
+    // if driveFlag, airFlag and !torqueControlFlag
+    if (flags[3] && flags[0] && !flags[1])
     {
         // if accel pedal is stepped on
         if (accel->getValue(0) * 0.0049f >= 0.7f && accel->getValue(1) * 0.0049f >= 0.7f)
@@ -86,7 +86,7 @@ void loop()
            driveSW->resetFlag();
         }
     }
-    else
+    else if (!(flags[3] && flags[0] && flags[1]))
     {
         flags[3] = 0;
         driveSW->resetFlag();
