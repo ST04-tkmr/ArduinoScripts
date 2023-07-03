@@ -28,6 +28,9 @@ unsigned char flags[4];
 Switch *driveSW;
 Switch *shutdownSW;
 
+unsigned long deltaTime, lastTime, nowTime;
+unsigned long id;
+
 void interrupt();
 
 void setup()
@@ -57,13 +60,24 @@ void setup()
     shutdownSW = new Switch();
     pinMode(SHUTDOWN_SW, INPUT);
 
-    MsTimer2::set(500, interrupt);
+    MsTimer2::set(100, interrupt);
     MsTimer2::start();
+
+    deltaTime = 0;
+    lastTime = 0;
+    nowTime = 0;
+    id = 0;
 }
 
 void loop()
 {
-    inverter->readMsgFromInverter(0);
+    id = inverter->readMsgFromInverter(0);
+    if (id == MG_ECU1_ID)
+    {
+        nowTime = millis();
+        deltaTime = nowTime - lastTime;
+        lastTime = nowTime;
+    }
 
     val[0] = analogRead(ACCEL_SENSOR1);
     val[1] = analogRead(ACCEL_SENSOR2);
@@ -101,6 +115,7 @@ void loop()
 
 void interrupt()
 {
+
     Serial.print("airFlag : ");
     Serial.println(flags[0]);
     Serial.print("torqueControlFlag : ");
@@ -110,4 +125,5 @@ void interrupt()
     Serial.print("driveFlag : ");
     Serial.println(flags[3]);
     inverter->checkMsg(MG_ECU1_ID);
+    Serial.println(deltaTime);
 }
