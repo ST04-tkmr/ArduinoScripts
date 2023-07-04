@@ -60,7 +60,7 @@ void setup()
     shutdownSW = new Switch();
     pinMode(SHUTDOWN_SW, INPUT);
 
-    MsTimer2::set(100, interrupt);
+    MsTimer2::set(500, interrupt);
     MsTimer2::start();
 
     deltaTime = 0;
