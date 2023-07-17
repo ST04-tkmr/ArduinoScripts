@@ -9,6 +9,7 @@
 #define ACCEL_SENSOR1 (A0)
 #define ACCEL_SENSOR2 (A1)
 #define READY_TO_DRIVE_SW (3)
+#define READY_TO_DRIVE_SIG (6)
 #define AIR_SIG (4)
 #define SHUTDOWN_SW (5)
 
@@ -51,6 +52,8 @@ void setup()
 
     driveSW = new Switch();
     pinMode(READY_TO_DRIVE_SW, INPUT);
+    pinMode(READY_TO_DRIVE_SIG, OUTPUT);
+    digitalWrite(READY_TO_DRIVE_SIG, LOW);
 
     torque = 0;
 
@@ -106,9 +109,10 @@ void loop()
         driveSW->resetFlag();
     }
 
-    inverter->runInverter(flags, 270, torque);
+    inverter->runInverter(flags, 400, torque);
 
     digitalWrite(AIR_SIG, flags[0]);
+    digitalWrite(READY_TO_DRIVE_SIG, flags[3]);
 
     inverter->sendMsgToInverter(0);
 }
