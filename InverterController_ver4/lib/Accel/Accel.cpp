@@ -51,16 +51,19 @@ float Accel::calcTorque()
 void Accel::updateTorqueOutputFlag(void)
 {
     lastDevError = devError;
+    // 過去3回連続で偏差が10%を超えたらエラーとして認識
     devError = (chatt[2] & chatt[1] & chatt[0]);
     chatt[2] = chatt[1];
     chatt[1] = chatt[0];
     //chatt[0] = deviation[0] > THRESHOLD_DEVIATION && deviation[1] > THRESHOLD_DEVIATION;
     chatt[0] = dev > THRESHOLD_DEVIATION;
+    // エラーの立ち上がりでエラーフラグが立つ
     if (lastDevError == 0 && devError == 1)
     {
         devErrorFlag = 1;
     }
 
+    // エラーフラグが立ったら出力を切る
     if (torqueOutputFlag)
     {
         if (devErrorFlag)
@@ -71,6 +74,7 @@ void Accel::updateTorqueOutputFlag(void)
         return;
     }
 
+    // アクセルを離してポジションが0%に戻ったらエラー解除
     if (devErrorFlag)
     {
         if (val[0] * 0.0049f < 0.7f && val[1] * 0.0049f < 0.7f)
