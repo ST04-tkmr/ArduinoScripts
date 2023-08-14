@@ -30,13 +30,12 @@ float Accel::calcTorque()
         {
             return 0;
         }
-
-        if (v > MAXIMUM_SENSOR_VOLTAGE)
+        else if (v > MAXIMUM_SENSOR_VOLTAGE)
         {
-            v = MAXIMUM_SENSOR_VOLTAGE;
+            return 0;
         }
 
-        return MAXIMUM_TORQUE * (v - MINIMUM_SENSOR_VOLTAGE);
+        return MAXIMUM_TORQUE * ((v - MINIMUM_SENSOR_VOLTAGE) / (MAXIMUM_SENSOR_VOLTAGE - MINIMUM_SENSOR_VOLTAGE));
     }
 
     return 0;
@@ -131,6 +130,35 @@ unsigned char Accel::setValue(unsigned short *value)
         if (0 <= *(value + i) && *(value + i) <= 1023)
         {
             val[i] = *(value + i);
+        }
+        else
+        {
+            val[i] = 0;
+        }
+    }
+
+    avr = (val[0] + val[1]) / 2;
+    deviation[0] = calcDev(0);
+    deviation[1] = calcDev(1);
+
+    updateTorqueOutputFlag();
+
+    torque = calcTorque();
+
+    return 0;
+}
+
+unsigned char Accel::setValue(unsigned short val1, unsigned short val2)
+{
+    unsigned short v[2];
+    v[0] = val1;
+    v[1] = ((-1) * val2) + 1023;
+
+    for (int i = 0; i < 2; i++)
+    {
+        if (v[i] <= 1023)
+        {
+            val[i] = v[i];
         }
         else
         {

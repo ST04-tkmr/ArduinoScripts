@@ -84,7 +84,8 @@ void loop()
 
     val[0] = analogRead(ACCEL_SENSOR1);
     val[1] = analogRead(ACCEL_SENSOR2);
-    accel->setValue(val);
+    //accel->setValue(val);
+    accel->setValue(val[0], val[1]);
     torque = flags[1] ? accel->getTorque() : 0;
 
     shutdownSW->updateState(digitalRead(SHUTDOWN_SW));

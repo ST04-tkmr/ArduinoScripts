@@ -32,6 +32,19 @@ public:
     */
     unsigned char setValue(unsigned short *value);
 
+    /**
+     * @fn      setValue
+     *
+     * @brief   センサから読み取った値（0~1023）をセットする.
+     *          2つの特性において、傾きの絶対値が同じで符号が異なる.
+     *
+     * @param   val1    正の傾きの特性を持つセンサの値
+     * @param   val2    負の傾きの特性を持つセンサの値
+     *
+     * @return
+    */
+    unsigned char setValue(unsigned short val1, unsigned short val2);
+
     inline unsigned char getDevErrorFlag() { return devErrorFlag; }
 
     unsigned short getDeviation(unsigned char index);
