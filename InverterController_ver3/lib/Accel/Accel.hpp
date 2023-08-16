@@ -1,6 +1,8 @@
 #ifndef _ACCEL_H_
 #define _ACCEL_H_
 
+#include "Accel_dfs.hpp"
+
 class Accel
 {
 private:

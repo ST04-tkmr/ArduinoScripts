@@ -4,6 +4,7 @@
 #include "EV_ECU1.hpp"
 #include "MG_ECU1.hpp"
 #include "MG_ECU2.hpp"
+#include "Inverter_dfs.hpp"
 
 class Inverter
 {

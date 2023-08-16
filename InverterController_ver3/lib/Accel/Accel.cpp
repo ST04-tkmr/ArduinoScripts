@@ -1,5 +1,4 @@
 #include "Accel.hpp"
-#include "Accel_dfs.hpp"
 #include <stdlib.h>
 
 unsigned short Accel::calcDev(unsigned char index)
@@ -65,7 +64,7 @@ void Accel::updateTorqueOutputFlag(void)
 
     if (devErrorFlag)
     {
-        if (val[0] * 0.0049f < 0.7f && val[1] * 0.0049f < 0.7f)
+        if (val[0] * 0.0049f < MINIMUM_SENSOR_VOLTAGE && val[1] * 0.0049f < MINIMUM_SENSOR_VOLTAGE)
         {
             if (lastDevError == 0 && devError == 0)
             {

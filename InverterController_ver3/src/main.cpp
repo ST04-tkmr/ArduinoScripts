@@ -8,10 +8,11 @@
 
 #define ACCEL_SENSOR1 (A0)
 #define ACCEL_SENSOR2 (A1)
-#define READY_TO_DRIVE_SW (3)
-#define READY_TO_DRIVE_SIG (6)
-#define AIR_SIG (4)
-#define SHUTDOWN_SW (5)
+#define READY_TO_DRIVE_SW (11)
+#define READY_TO_DRIVE_SIG (13)
+#define AIR_PLUS_SIG (6)
+#define AIR_MINUS_SIG (3)
+#define SHUTDOWN_DETECT (8)
 
 Inverter *inverter;
 Accel *accel;
@@ -25,9 +26,10 @@ float torque;
  * flags[3] = driveFlag
  */
 unsigned char flags[4];
+unsigned char setupFlag;
 
 Switch *driveSW;
-Switch *shutdownSW;
+Switch *shutdownDetect;
 
 unsigned long deltaTime, lastTime, nowTime;
 unsigned long id;
@@ -43,6 +45,7 @@ void setup()
     flags[1] = 0;
     flags[2] = 0;
     flags[3] = 0;
+    setupFlag = 0;
 
     accel = new Accel();
     val[0] = 0;
@@ -57,11 +60,13 @@ void setup()
 
     torque = 0;
 
-    pinMode(AIR_SIG, OUTPUT);
-    digitalWrite(AIR_SIG, LOW);
+    pinMode(AIR_PLUS_SIG, OUTPUT);
+    digitalWrite(AIR_PLUS_SIG, LOW);
+    pinMode(AIR_MINUS_SIG, OUTPUT);
+    digitalWrite(AIR_MINUS_SIG, LOW);
 
-    shutdownSW = new Switch();
-    pinMode(SHUTDOWN_SW, INPUT);
+    shutdownDetect = new Switch();
+    pinMode(SHUTDOWN_DETECT, INPUT);
 
     MsTimer2::set(500, interrupt);
     MsTimer2::start();
@@ -88,8 +93,13 @@ void loop()
     accel->setValue(val[0], val[1]);
     torque = flags[1] ? accel->getTorque() : 0;
 
-    shutdownSW->updateState(digitalRead(SHUTDOWN_SW));
-    flags[2] = shutdownSW->getSWFlag();
+    shutdownDetect->updateState(~digitalRead(SHUTDOWN_DETECT));
+    flags[2] = shutdownDetect->getSWFlag();
+    if (!setupFlag && flags[2])
+    {
+        shutdownDetect->resetFlag();
+        setupFlag = 1;
+    }
 
     driveSW->updateState(digitalRead(READY_TO_DRIVE_SW));
     flags[3] = driveSW->getSWFlag();
@@ -98,7 +108,7 @@ void loop()
     if (flags[3] && flags[0] && !flags[1])
     {
         // if accel pedal is stepped on
-        if (accel->getValue(0) * 0.0049f >= 0.7f && accel->getValue(1) * 0.0049f >= 0.7f)
+        if (accel->getValue(0) * 0.0049f >= MINIMUM_SENSOR_VOLTAGE && accel->getValue(1) * 0.0049f >= MINIMUM_SENSOR_VOLTAGE)
         {
            flags[3] = 0;
            driveSW->resetFlag();
@@ -112,7 +122,8 @@ void loop()
 
     inverter->runInverter(flags, 400, torque);
 
-    digitalWrite(AIR_SIG, flags[0]);
+    digitalWrite(AIR_PLUS_SIG, flags[0]);
+    digitalWrite(AIR_MINUS_SIG, HIGH);
     digitalWrite(READY_TO_DRIVE_SIG, flags[3]);
 
     inverter->sendMsgToInverter(0);
@@ -129,6 +140,9 @@ void interrupt()
     Serial.println(flags[2]);
     Serial.print("driveFlag : ");
     Serial.println(flags[3]);
+    Serial.print("Torque : ");
+    Serial.println(torque);
     inverter->checkMsg(MG_ECU1_ID);
     Serial.println(deltaTime);
+    
 }
