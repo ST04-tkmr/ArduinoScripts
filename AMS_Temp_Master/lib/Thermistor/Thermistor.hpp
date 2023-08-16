@@ -31,45 +31,75 @@
 #define THERMISTOR
 
 #include <math.h>
+#include "Thermistor_dfs.hpp"
 
 //-------------------------------------------------------
 //  型定義
 //-------------------------------------------------------
+// ADCの結果を保存するデータ構造
+union THM_DATA
+{
+    unsigned char data[8];
+    struct
+    {
+        unsigned short thm1 : 10;
+        unsigned short thm2 : 10;
+        unsigned short thm3 : 10;
+        unsigned short thm4 : 10;
+        unsigned short thm5 : 10;
+        unsigned short thm6 : 10;
+        unsigned char received : 4;
+    };
+
+    THM_DATA();
+};
+
 // サーミスタのパラメータ
 // アナログピンで読み取った値と算出したサーミスタの情報を格納する
 class Thermistor
 {
 private:
-    volatile int val;    // アナログピンで読み取った値
-    volatile float r;    // 抵抗値
-    volatile float temp; // 抵抗値から計算した温度
+    volatile THM_DATA *thm;
+    volatile unsigned short val[thmNum]; // アナログピンで読み取った値
+    volatile float r[thmNum];            // 抵抗値
+    volatile float temp[thmNum];         // 抵抗値から計算した温度
 
 public:
-    const float r0 = 10000.0f; // 25℃の時のサーミスタの抵抗値
-    const float t0 = 25.0f;    // 基準温度
-    const float b = 3423.0f;   // B定数
-    const float rs = 10000.0f; // サーミスタと直列につなぐ抵抗の値
-
     Thermistor();
 
-    //-------------------------------------------------------
-    //  アナログピンで読み取った値をセットする
-    //  セットした値から電圧値に換算し、抵抗値と温度も計算してセットする
-    //  引数：アナログピンで読み取った値(analogReadの戻り値0~1023)
-    //  戻り値：成功1, 失敗0
-    //-------------------------------------------------------
-    char setVal(int val) volatile;
+    /**
+     * @fn  setData
+     *
+     * @brief   i2cで取得したデータをセット. 温度計算まで行う.
+     *
+     * @param   data    データ配列のポインタ
+     * @param   length  データ配列の要素数（<= 8）
+     *
+     * @return
+     */
+    unsigned char setData(unsigned char *data, unsigned char length);
 
-    inline int getVal() { return val; }
-    float getR() { return r; }
-    float getTemp() {return temp; }
+    /**
+     * @fn  setVal
+     *
+     * @brief   analogReadした値をセットする.
+     *
+     * @param   val analogReadした値（0~1023）
+     *
+     * @return  Success(0), Fail(1)
+     */
+    unsigned char setVal(unsigned short val, unsigned char index) volatile;
+
+    inline int getVal(unsigned char index) { return val[index]; }
+    inline float getR(unsigned char index) { return r[index]; }
+    inline float getTemp(unsigned char index) { return temp[index]; }
 
     //-------------------------------------------------------
     //  読み込んだ電圧からサーミスタの抵抗を計算
     //  引数：アナログピンで読み取った値(analogReadの戻り値0~1023)
     //  戻り値：サーミスタの抵抗値
     //-------------------------------------------------------
-    float calcR(int val) volatile;
+    float calcR(unsigned short val) volatile;
 
     //-------------------------------------------------------
     //  抵抗から温度計算

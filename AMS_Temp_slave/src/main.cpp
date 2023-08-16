@@ -28,7 +28,7 @@ union THM_DATA
         uint16_t thm4 : 10;
         uint16_t thm5 : 10;
         uint16_t thm6 : 10;
-        uint16_t received : 4;
+        uint8_t received : 4;
     };
 
     THM_DATA()
@@ -81,8 +81,8 @@ void setup()
 
     Serial.begin(115200);
 
-    MsTimer2::set(500, checkData);
-    MsTimer2::start();
+    //MsTimer2::set(500, checkData);
+    //MsTimer2::start();
 }
 
 void loop()
