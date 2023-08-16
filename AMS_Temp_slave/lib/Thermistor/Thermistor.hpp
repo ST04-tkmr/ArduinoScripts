@@ -45,10 +45,10 @@ private:
     volatile float temp; // 抵抗値から計算した温度
 
 public:
-    static const float r0 = 10000.0f; // 25℃の時のサーミスタの抵抗値
-    static const float t0 = 25.0f;    // 基準温度
-    static const float b = 3423.0f;   // B定数
-    static const float rs = 10000.0f; // サーミスタと直列につなぐ抵抗の値
+    const float r0 = 10000.0f; // 25℃の時のサーミスタの抵抗値
+    const float t0 = 25.0f;    // 基準温度
+    const float b = 3423.0f;   // B定数
+    const float rs = 10000.0f; // サーミスタと直列につなぐ抵抗の値
 
     Thermistor();
 
@@ -60,9 +60,9 @@ public:
     //-------------------------------------------------------
     char setVal(int val) volatile;
 
-    int getVal();
-    float getR();
-    float getTemp();
+    inline int getVal() { return val; }
+    float getR() { return r; }
+    float getTemp() {return temp; }
 
     //-------------------------------------------------------
     //  読み込んだ電圧からサーミスタの抵抗を計算
@@ -78,20 +78,5 @@ public:
     //-------------------------------------------------------
     float calcTemp(float r) volatile;
 };
-
-inline int Thermistor::getVal()
-{
-    return val;
-}
-
-inline float Thermistor::getR()
-{
-    return r;
-}
-
-inline float Thermistor::getTemp()
-{
-    return temp;
-}
 
 #endif
