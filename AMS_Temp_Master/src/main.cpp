@@ -4,11 +4,12 @@
 #include "Thermistor.hpp"
 #include "CAN_Temp.hpp"
 
-uint32_t count;
+volatile uint8_t count;
 uint8_t data[8];
 Thermistor *thm;
+volatile uint8_t countFlag;
 
-void interrupt(void);
+void handler(void);
 
 void setup()
 {
@@ -18,29 +19,26 @@ void setup()
         data[i] = 0;
     }
     thm = new Thermistor();
+    countFlag = 0;
+
     Wire.begin();
 
     Serial.begin(115200);
 
-    MsTimer2::set(100, interrupt);
-    // MsTimer2::start();
+    MsTimer2::set(100, handler);
+    MsTimer2::start();
 }
 
 void loop()
 {
-    if (count >= 4)
+    if (!countFlag)
     {
-        // CANバスにメッセージを流す
-
-        count = 0;
-    }
-    else
-    {
-        // データリクエスト
         if (count < ecuNum)
         {
-            Serial.print("request from ");
-            Serial.println(adrs[count]);
+            // データリクエスト
+            Serial.print("count : ");
+            Serial.println(count);
+
             Wire.requestFrom(adrs[count], sizeof(data));
 
             uint8_t i = 0;
@@ -52,19 +50,44 @@ void loop()
 
             thm->setData(data, sizeof(data));
 
+            Serial.print("raw data : ");
+            Serial.println(count);
             for (char j = 0; j < thmNum; j++)
             {
                 Serial.println(thm->getVal(j));
             }
+
+            Serial.println("temperature");
+            for (char j = 0; j < thmNum; j++)
+            {
+                Serial.println(thm->getTemp(j));
+            }
+
             Serial.println();
         }
+        else
+        {
+            // CANバスにメッセージを流す
 
-        count++;
+        }
+
+        countFlag = 1;
     }
-
-    delay(100);
 }
 
-void interrupt(void)
+void handler(void)
 {
+    if (countFlag)
+    {
+        if (count < ecuNum)
+        {
+            count++;
+        }
+        else
+        {
+            count = 0;
+        }
+        countFlag = 0;
+    }
+    Serial.println(count);
 }
