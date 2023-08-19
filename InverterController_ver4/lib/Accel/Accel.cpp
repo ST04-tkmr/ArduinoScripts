@@ -2,44 +2,28 @@
 #include "Accel_dfs.hpp"
 #include <stdlib.h>
 
-unsigned short Accel::calcDev(unsigned char index)
+unsigned short Accel::calcDev(void)
 {
-    if (index == 0 || index == 1)
-    {
-        if (avr < 1023 / 2)
-        {
-            // return abs((val[index] - avr) / static_cast<float>((1023 - avr))) * 100;
-            return abs(val[index] - avr);
-        }
-
-        // return abs((val[index] - avr) / static_cast<float>(avr)) * 100;
-        return abs(val[index] - avr);
-    }
-
-    return 100;
-}
-
-unsigned short Accel::calcDev()
-{
-    unsigned short def = abs(val[0] - val[1]);
-    return 100 * (def / AMOUNT_OF_MOVEMENT);
+    unsigned short def = abs(val[0] - val[1]);  // 2つのセンサ値の差
+    return 100 * (def / AMOUNT_OF_MOVEMENT);    // 差をセンサ値の移動量で割って100をかける
 }
 
 float Accel::calcTorque()
 {
     if (torqueOutputFlag)
     {
-        unsigned short value = val[0] < val[1] ? val[0] : val[1];
-        float v = value * 0.0049f;
+        unsigned short value = val[0] < val[1] ? val[0] : val[1];   // センサ値の小さい方を採用
+        float v = value * 0.0049f;                                  // センサ値→電圧値変換
 
+        // センサ信号が想定範囲の電圧に収まっているか
         if (v < MINIMUM_SENSOR_VOLTAGE)
         {
             return 0;
         }
-
-        if (v > MAXIMUM_SENSOR_VOLTAGE)
+        else if (v > MAXIMUM_SENSOR_VOLTAGE)
         {
-            v = MAXIMUM_SENSOR_VOLTAGE;
+            //v = MAXIMUM_SENSOR_VOLTAGE;
+            return 0;
         }
 
         return MAXIMUM_TORQUE * (v - MINIMUM_SENSOR_VOLTAGE);
@@ -89,39 +73,12 @@ void Accel::updateTorqueOutputFlag(void)
         return;
     }
 
-    /*
-    if (torqueOutputFlag)
-    {
-        if (deviation[0] > THRESHOLD_DEVIATION && deviation[1] > THRESHOLD_DEVIATION)
-        {
-            devErrorFlag = 1;
-            torqueOutputFlag = 0;
-            return;
-        }
-        return;
-    }
-
-    if (devErrorFlag)
-    {
-        if (val[0] * 0.0049f < 0.7f && val[1] * 0.0049f < 0.7f)
-        {
-            if (deviation[0] <= THRESHOLD_DEVIATION && deviation[1] <= THRESHOLD_DEVIATION)
-            {
-                devErrorFlag = 0;
-                return;
-            }
-            return;
-        }
-        return;
-    }
-    */
-
     torqueOutputFlag = 1;
     return;
 }
 
 Accel::Accel()
-    : val{0, 0}, avr(0), devErrorFlag(1), /*deviation{0, 0},*/ dev(0), lastDevError(0), devError(0), chatt{1, 1, 1}, torqueOutputFlag(0), torque(0.0f)
+    : val{0, 0}, avr(0), devErrorFlag(1), dev(0), lastDevError(0), devError(0), chatt{1, 1, 1}, torqueOutputFlag(0), torque(0.0f)
 {
 }
 
@@ -139,7 +96,7 @@ unsigned char Accel::setValue(unsigned short *value)
 {
     for (int i = 0; i < 2; i++)
     {
-        if (0 <= *(value + i) && *(value + i) <= 1023)
+        if (*(value + i) <= 1023)
         {
             val[i] = *(value + i);
         }
@@ -149,11 +106,7 @@ unsigned char Accel::setValue(unsigned short *value)
         }
     }
 
-    avr = (val[0] + val[1]) / 2;
-    /*
-    deviation[0] = calcDev(0);
-    deviation[1] = calcDev(1);
-    */
+    avr = (val[0] + val[1]) / 2.0f;
     dev = calcDev();
 
     updateTorqueOutputFlag();
@@ -163,14 +116,31 @@ unsigned char Accel::setValue(unsigned short *value)
     return 0;
 }
 
-/*
-unsigned short Accel::getDeviation(unsigned char index)
+unsigned char Accel::setValue(unsigned short val1, unsigned short val2)
 {
-    if (index == 0 || index == 1)
+    unsigned short v[2];
+
+    v[0] = val1;
+    v[1] = ((-1) * val2) + 1023;                // 傾きを負から正に変換
+
+    for (int i = 0; i < 2; i++)
     {
-        return deviation[index];
+        if (v[i] <= 1023)
+        {
+            val[i] = v[i];
+        }
+        else
+        {
+            val[i] = 0;
+        }
     }
 
-    return 1;
+    avr = (val[-1] + val[1]) / 2.0f;    // 平均値
+    dev = calcDev();                    // 偏差
+
+    updateTorqueOutputFlag();
+
+    torque = calcTorque();
+
+    return 0;
 }
-*/

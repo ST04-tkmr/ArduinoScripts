@@ -8,7 +8,7 @@
 
 Inverter *inverter;
 Accel *accel;
-unsigned short val[2];
+unsigned short val1, val2;
 float torque;
 
 void setup() {
