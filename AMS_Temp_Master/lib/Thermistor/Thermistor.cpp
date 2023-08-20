@@ -7,35 +7,38 @@ THM_DATA::THM_DATA()
 
 Thermistor::Thermistor()
 {
-    thm = new THM_DATA();
-    for (char i = 0; i < thmNum; i++)
+    for (int i = 0; i < ecuNum; i++)
     {
-        val[i] = 0;
-        r[i] = 0;
-        temp[i] = 0;
+        thm[i] = new THM_DATA();
+        for (int j = 0; j < thmNum; j++)
+        {
+            val[i][j] = 0;
+            r[i][j] = 0;
+            temp[i][j] = 0;
+        }
     }
 }
 
-unsigned char Thermistor::setData(unsigned char *data, unsigned char length)
+unsigned char Thermistor::setData(unsigned char ecuIndex, unsigned char *data, unsigned char length)
 {
     if (length <= 8)
     {
-        for (char i = 0; i < length; i++)
+        for (int i = 0; i < length; i++)
         {
-            thm->data[i] = *(data + i);
+            thm[ecuIndex]->data[i] = *(data + i);
         }
 
-        setVal(thm->thm1, 0);
-        setVal(thm->thm2, 1);
-        setVal(thm->thm3, 2);
-        setVal(thm->thm4, 3);
-        setVal(thm->thm5, 4);
-        setVal(thm->thm6, 5);
+        setVal(thm[ecuIndex]->thm1, ecuIndex, 0);
+        setVal(thm[ecuIndex]->thm2, ecuIndex, 1);
+        setVal(thm[ecuIndex]->thm3, ecuIndex, 2);
+        setVal(thm[ecuIndex]->thm4, ecuIndex, 3);
+        setVal(thm[ecuIndex]->thm5, ecuIndex, 4);
+        setVal(thm[ecuIndex]->thm6, ecuIndex, 5);
 
-        for (char i = 0; i < thmNum; i++)
+        for (int i = 0; i < thmNum; i++)
         {
-            this->r[i] = calcR(this->val[i]);
-            this->temp[i] = calcTemp(this->r[i]);
+            this->r[ecuIndex][i] = calcR(this->val[ecuIndex][i]);
+            this->temp[ecuIndex][i] = calcTemp(this->r[ecuIndex][i]);
         }
 
         return 0;
@@ -46,18 +49,21 @@ unsigned char Thermistor::setData(unsigned char *data, unsigned char length)
     }
 }
 
-unsigned char Thermistor::setVal(unsigned short val, unsigned char index) volatile
+unsigned char Thermistor::setVal(unsigned short val, unsigned char ecuIndex, unsigned char thmIndex) volatile
 {
-    if (index < thmNum)
+    if (ecuIndex < ecuNum)
     {
-        if (val <= 1023)
+        if (thmIndex < thmNum)
         {
-            this->val[index] = val;
-            return 0;
-        }
-        else
-        {
-            return 1;
+            if (val <= 1023)
+            {
+                this->val[ecuIndex][thmIndex] = val;
+                return 0;
+            }
+            else
+            {
+                return 1;
+            }
         }
     }
 
@@ -66,8 +72,15 @@ unsigned char Thermistor::setVal(unsigned short val, unsigned char index) volati
 
 float Thermistor::calcR(unsigned short val) volatile
 {
-    float vd, thmR;              // 実際の電圧値, サーミスタの抵抗値
-    vd = val * 0.0049f;          // 実際の電圧値に変換
+    float vd, thmR; // 実際の電圧値, サーミスタの抵抗値
+    if (val > 1000)
+    {
+        vd = 0;
+    }
+    else
+    {
+        vd = val * 0.0049f; // 実際の電圧値に変換
+    }
     thmR = (rs * vd) / (5 - vd); // サーミスタの抵抗値算出
     return thmR;
 }

@@ -17,6 +17,20 @@ mcp2518fd CAN(SPI_CS_PIN); // Set CS pin
 #include "mcp2515_can.h"
 mcp2515_can CAN(SPI_CS_PIN); // Set CS pin
 
+CAN_Temp_MSG::CAN_Temp_MSG()
+    : msg{0, 0, 0, 0, 0, 0, 0, 0}
+{
+}
 
+CAN_Temp::CAN_Temp(const unsigned long id)
+    : id(id)
+{
+    msg = new CAN_Temp_MSG();
+}
+
+unsigned char CAN_Temp::sendTempMsg(unsigned char printFlag)
+{
+    return 1;
+}
 
 #endif

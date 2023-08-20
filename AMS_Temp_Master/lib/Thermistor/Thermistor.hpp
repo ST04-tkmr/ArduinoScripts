@@ -59,10 +59,10 @@ union THM_DATA
 class Thermistor
 {
 private:
-    volatile THM_DATA *thm;
-    volatile unsigned short val[thmNum]; // アナログピンで読み取った値
-    volatile float r[thmNum];            // 抵抗値
-    volatile float temp[thmNum];         // 抵抗値から計算した温度
+    volatile THM_DATA *thm[ecuNum];
+    volatile unsigned short val[ecuNum][thmNum]; // アナログピンで読み取った値
+    volatile float r[ecuNum][thmNum];            // 抵抗値
+    volatile float temp[ecuNum][thmNum];         // 抵抗値から計算した温度
 
 public:
     Thermistor();
@@ -72,12 +72,13 @@ public:
      *
      * @brief   i2cで取得したデータをセット. 温度計算まで行う.
      *
+     * @param   ecuIndex   ECU番号（0~ecuNum）
      * @param   data    データ配列のポインタ
      * @param   length  データ配列の要素数（<= 8）
      *
      * @return
      */
-    unsigned char setData(unsigned char *data, unsigned char length);
+    unsigned char setData(unsigned char ecuIndex, unsigned char *data, unsigned char length);
 
     /**
      * @fn  setVal
@@ -85,14 +86,54 @@ public:
      * @brief   analogReadした値をセットする.
      *
      * @param   val analogReadした値（0~1023）
+     * @param   ecuIndex    ECU番号（0~ecuNum）
+     * @param   thmIndex    サーミスタ番号（0~thmNum）
      *
      * @return  Success(0), Fail(1)
      */
-    unsigned char setVal(unsigned short val, unsigned char index) volatile;
+    unsigned char setVal(unsigned short val, unsigned char ecuIndex, unsigned char thmIndex) volatile;
 
-    inline int getVal(unsigned char index) { return val[index]; }
-    inline float getR(unsigned char index) { return r[index]; }
-    inline float getTemp(unsigned char index) { return temp[index]; }
+    inline int getVal(unsigned char ecuIndex, unsigned char thmIndex) { return val[ecuIndex][thmIndex]; }
+    inline float getR(unsigned char ecuIndex, unsigned char thmIndex) { return r[ecuIndex][thmIndex]; }
+    inline float getTemp(unsigned char ecuIndex, unsigned char thmIndex) { return temp[ecuIndex][thmIndex]; }
+
+    /**
+     * @fn  getMaxTemp
+     * 
+     * @brief   各セグメントの最大温度を取得
+     * 
+     * @param   ecuIndex    ECU番号（0~ecuNum）
+     * 
+     * @return  セグメントの最大温度
+    */
+    inline float getMaxTemp(unsigned char ecuIndex)
+    {
+        float maxTemp = -273.0f;
+        for (int i = 0; i < thmNum; i++)
+        {
+            maxTemp = maxTemp > temp[ecuIndex][i] ? maxTemp : temp[ecuIndex][i];
+        }
+        return maxTemp;
+    }
+
+    /**
+     * @fn  getMinTemp
+     * 
+     * @brief   各セグメントの最低温度を取得
+     * 
+     * @param   ecuIndex    ECU番号（0~ecuNum）
+     * 
+     * @return  セグメントの最低温度
+    */
+    inline float getMinTemp(unsigned char ecuIndex)
+    {
+        float minTemp = 125.0f;
+        for (int i = 0; i < thmNum; i++)
+        {
+            minTemp = minTemp < temp[ecuIndex][i] ? minTemp : temp[ecuIndex][i];
+        }
+        return minTemp;
+    }
 
     //-------------------------------------------------------
     //  読み込んだ電圧からサーミスタの抵抗を計算

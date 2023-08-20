@@ -143,6 +143,7 @@ void interrupt()
     Serial.print("Torque : ");
     Serial.println(torque);
     inverter->checkMsg(MG_ECU1_ID);
+    inverter->checkMsg(MG_ECU2_ID);
     Serial.println(deltaTime);
     
 }

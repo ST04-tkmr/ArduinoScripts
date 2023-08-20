@@ -18,11 +18,11 @@ union CAN_Temp_MSG
 
 class CAN_Temp
 {
-    private:
+private:
     const unsigned long id;
     CAN_Temp_MSG *msg;
-    
-    public:
+
+public:
     CAN_Temp(const unsigned long id);
 
     unsigned char sendTempMsg(unsigned char printFlag);
