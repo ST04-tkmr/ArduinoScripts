@@ -67,7 +67,7 @@ void Inverter::runInverter(unsigned char *flags, unsigned short batVol, float to
         case WORKING_RAPID_DISCHARGE:
             if (!evecu1->getDischargeCommand())
             {
-                evecu1->setDischargeCommand(1);
+                // evecu1->setDischargeCommand(1);
             }
             break;
 
@@ -124,7 +124,7 @@ void Inverter::runInverter(unsigned char *flags, unsigned short batVol, float to
                 }
                 else
                 {
-                    evecu1->setDischargeCommand(1);
+                    // evecu1->setDischargeCommand(1);
                 }
             }
             break;

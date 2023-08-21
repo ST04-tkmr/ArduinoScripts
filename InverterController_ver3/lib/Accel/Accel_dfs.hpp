@@ -6,5 +6,5 @@
 
 #define THRESHOLD_DEVIATION (20)
 
-#define MAXIMUM_TORQUE (2.0f)
+#define MAXIMUM_TORQUE (30.0f)
 #endif

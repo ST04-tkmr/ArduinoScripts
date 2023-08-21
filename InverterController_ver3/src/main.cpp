@@ -140,6 +140,10 @@ void interrupt()
     Serial.println(flags[2]);
     Serial.print("driveFlag : ");
     Serial.println(flags[3]);
+    Serial.print("Accel1 : ");
+    Serial.println(accel->getValue(0) * 0.0049f);
+    Serial.print("Accel2 : ");
+    Serial.println(accel->getValue(1) * 0.0049f);
     Serial.print("Torque : ");
     Serial.println(torque);
     inverter->checkMsg(MG_ECU1_ID);
