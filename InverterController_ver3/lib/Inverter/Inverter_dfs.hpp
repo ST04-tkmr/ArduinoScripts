@@ -1,6 +1,9 @@
 #ifndef _INVERTER_DFS_H_
 #define _INVERTER_DFS_H_
 
+const int SPI_CS_PIN = 9;
+const int CAN_INT_PIN = 2;
+
 #define MINIMUM_BATTERY_VOLTAGE (250)
 #define MAXIMUM_BATTERY_VOLTAGE (400)
 #define MINIMUM_INPUT_VOLTAGE (50)

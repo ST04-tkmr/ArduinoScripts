@@ -32,6 +32,14 @@ void setup()
 
     Serial.begin(115200);
 
+    while (CAN_OK != CAN.begin(CAN_500KBPS))
+    {
+        Serial.println("CAN init fail, retry...");
+        delay(100);
+    }
+    Serial.println("CAN init OK!");
+
+
     MsTimer2::set(100, handler);
     MsTimer2::start();
 }

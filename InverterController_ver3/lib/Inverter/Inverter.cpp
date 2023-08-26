@@ -1,5 +1,6 @@
 #include "Inverter.hpp"
 
+/*
 #include <SPI.h>
 #define CAN_2515
 #if defined(SEEED_WIO_TERMINAL) && defined(CAN_2518FD)
@@ -17,6 +18,9 @@ mcp2518fd CAN(SPI_CS_PIN); // Set CS pin
 #include "mcp2515_can.h"
 mcp2515_can CAN(SPI_CS_PIN); // Set CS pin
 #endif
+*/
+
+mcp2515_can CAN(SPI_CS_PIN); // Set CS pin
 
 Inverter::Inverter()
 {

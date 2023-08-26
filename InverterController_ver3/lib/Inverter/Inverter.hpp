@@ -1,10 +1,15 @@
 #ifndef _INVERTER_H_
 #define _INVERTER_H_
 
+#include <SPI.h>
+#include "mcp2515_can.h"
+
 #include "EV_ECU1.hpp"
 #include "MG_ECU1.hpp"
 #include "MG_ECU2.hpp"
 #include "Inverter_dfs.hpp"
+
+//mcp2515_can CAN(SPI_CS_PIN); // Set CS pin
 
 class Inverter
 {
