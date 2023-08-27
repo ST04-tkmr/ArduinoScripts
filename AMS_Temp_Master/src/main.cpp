@@ -15,6 +15,7 @@ volatile uint8_t countFlag;
 volatile unsigned long nowTime, lastCalTime;
 volatile unsigned char pastErrFlag[3];
 volatile unsigned char dangerFlag;
+CAN_Temp *ACC_Temp;
 
 void handler(void);
 
@@ -32,13 +33,8 @@ void setup()
 
     Serial.begin(115200);
 
-    while (CAN_OK != CAN.begin(CAN_500KBPS))
-    {
-        Serial.println("CAN init fail, retry...");
-        delay(100);
-    }
-    Serial.println("CAN init OK!");
-
+    ACC_Temp = new CAN_Temp(ACC_ID);
+    ACC_Temp->init();
 
     MsTimer2::set(100, handler);
     MsTimer2::start();

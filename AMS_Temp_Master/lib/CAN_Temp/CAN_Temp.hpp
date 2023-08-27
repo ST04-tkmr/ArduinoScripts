@@ -1,6 +1,7 @@
 #ifndef _CAN_TEMP_H_
 #define _CAN_TEMP_H_
 
+#include "Parameter.hpp"
 #include "CAN_Temp_dfs.hpp"
 
 #include <SPI.h>
@@ -22,7 +23,7 @@ mcp2518fd CAN(SPI_CS_PIN); // Set CS pin
 #ifdef CAN_2515
 */
 #include "mcp2515_can.h"
-mcp2515_can CAN(SPI_CS_PIN); // Set CS pin
+//mcp2515_can CAN(SPI_CS_PIN); // Set CS pin
 //#endif
 
 union CAN_Temp_MSG
@@ -43,11 +44,16 @@ class CAN_Temp
 private:
     const unsigned long id;
     CAN_Temp_MSG *msg;
+    Parameter *tempPara;
 
 public:
     CAN_Temp(const unsigned long id);
 
+    void init(void);
+
     unsigned char sendTempMsg(unsigned char printFlag);
+
+    void checkBuf(unsigned char *buf);
 };
 
 #endif
