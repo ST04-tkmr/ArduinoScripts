@@ -9,8 +9,6 @@
 #include "MG_ECU2.hpp"
 #include "Inverter_dfs.hpp"
 
-//mcp2515_can CAN(SPI_CS_PIN); // Set CS pin
-
 class Inverter
 {
 private:
