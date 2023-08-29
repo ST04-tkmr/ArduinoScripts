@@ -295,6 +295,7 @@ int Inverter::sendMsgToInverter(unsigned char printFlag)
         buf[i] = evecu1->getMsgByte(i);
     }
 
+#ifdef ARDUINO_UNO_R4
     CanMsg msg(evecu1->getID(), sizeof(buf), buf);
 
     int const rc = CAN.write(msg);
@@ -318,7 +319,6 @@ int Inverter::sendMsgToInverter(unsigned char printFlag)
     }
 
     return rc;
-#ifdef ARDUINO_UNO_R4
 #else
     unsigned char result = CAN.sendMsgBuf(evecu1->getID(), 0, 8, buf);
 
