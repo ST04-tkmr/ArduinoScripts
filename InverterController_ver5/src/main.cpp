@@ -12,7 +12,7 @@
 
 Inverter *inverter;
 Accel *accel;
-unsigned short val[2];
+int val[2];
 float torque;
 Switch *driveSW;
 Switch *shutdownDetect;
@@ -131,9 +131,11 @@ void timerCallback(void)
     Serial.print("driveFlag : ");
     Serial.println(flags[3]);
     Serial.print("Accel1 : ");
-    Serial.println(accel->getValue(0) * 0.0049f);
+    Serial.println(accel->getValue(0));
     Serial.print("Accel2 : ");
-    Serial.println(accel->getValue(1) * 0.0049f);
+    Serial.println(accel->getValue(1));
+    Serial.print("Deviation : ");
+    Serial.println(accel->getDev());
     Serial.print("Torque : ");
     Serial.println(torque);
     inverter->checkMsg(MG_ECU1_ID);
