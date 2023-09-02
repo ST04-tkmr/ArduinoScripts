@@ -31,9 +31,9 @@ union CAN_Temp_MSG
     unsigned char msg[8];
     struct
     {
-        unsigned char avr : 8;
-        unsigned char max : 8;
-        unsigned char min : 8;
+        unsigned char avrTemp : 8;
+        unsigned char maxTemp : 8;
+        unsigned char minTemp : 8;
     };
 
     CAN_Temp_MSG();
@@ -51,9 +51,13 @@ public:
 
     void init(void);
 
+    unsigned char setTemp(Type type, float physicalValue);
+
     unsigned char sendTempMsg(unsigned char printFlag);
 
     void checkBuf(unsigned char *buf);
+
+    void checkMsg(void);
 };
 
 #endif

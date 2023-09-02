@@ -7,13 +7,10 @@ const unsigned long SEG2_ID = 0x342;
 const unsigned long SEG3_ID = 0x343;
 const unsigned long SEG4_ID = 0x344;
 
-const char offset = -25;
-const float resolution = 0.5f;
-
-const unsigned char normalMin = 0;
-const unsigned char normalMax = 250;
-
-const char physicalMin = -25;
-const char physicalMax = 100;
+enum Type {
+    AVR_TEMP,
+    MAX_TEMP,
+    MIN_TEMP
+};
 
 #endif

@@ -89,12 +89,12 @@ void loop()
 
     for (int i = 0; i < ecuNum; i++)
     {
-        if (thm->getMaxTemp(i) > maxAllowableTemp)
+        if (thm->getMaxTemp(i) >= maxAllowableTemp)
         {
             pastErrFlag[0] = 1;
             break;
         }
-        else if (thm->getMinTemp(i) < minAllowableTemp)
+        else if (thm->getMinTemp(i) <= minAllowableTemp)
         {
             pastErrFlag[0] = 1;
             break;

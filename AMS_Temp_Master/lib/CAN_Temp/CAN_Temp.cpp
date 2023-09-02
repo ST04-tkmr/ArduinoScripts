@@ -3,7 +3,7 @@
 mcp2515_can CAN(SPI_CS_PIN); // Set CS pin
 
 CAN_Temp_MSG::CAN_Temp_MSG()
-    : msg{0, 0, 0, 0, 0, 0, 0, 0}
+    : avrTemp(0xAA), maxTemp(0xAA), minTemp(0xAA)
 {
 }
 
@@ -22,6 +22,54 @@ void CAN_Temp::init(void)
         delay(100);
     }
     SERIAL_PORT_MONITOR.println("CAN init OK!");
+}
+
+unsigned char CAN_Temp::setTemp(Type type, float physicalValue)
+{
+    if (tempPara->getMinPhysical() <= physicalValue && physicalValue <= tempPara->getMaxPhysical())
+    {
+        switch (type)
+        {
+        case AVR_TEMP:
+            msg->avrTemp = tempPara->calcNormal(physicalValue);
+            return 0;
+            break;
+
+        case MAX_TEMP:
+            msg->maxTemp = tempPara->calcNormal(physicalValue);
+            return 0;
+            break;
+
+        case MIN_TEMP:
+            msg->minTemp = tempPara->calcNormal(physicalValue);
+            return 0;
+            break;
+
+        default:
+            return 1;
+            break;
+        }
+    }
+
+    switch (type)
+    {
+        case AVR_TEMP:
+        msg->avrTemp = tempPara->calcNormal(tempPara->getMaxPhysical());
+        break;
+
+        case MAX_TEMP:
+        msg->maxTemp = tempPara->calcNormal(tempPara->getMaxPhysical());
+        break;
+
+        case MIN_TEMP:
+        msg->minTemp = tempPara->calcNormal(tempPara->getMaxPhysical());
+        break;
+
+    default:
+        break;
+    }
+
+    return 1;
 }
 
 unsigned char CAN_Temp::sendTempMsg(unsigned char printFlag)
@@ -83,4 +131,9 @@ void CAN_Temp::checkBuf(unsigned char *buf)
 
         SERIAL_PORT_MONITOR.println();
     }
+}
+
+void CAN_Temp::checkMsg(void)
+{
+
 }

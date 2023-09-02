@@ -16,7 +16,7 @@ const float t0 = 25.0f;         // 基準温度
 const float b = 3423.0f;        // B定数
 const float rs = 10000.0f;      // サーミスタと直列につなぐ抵抗の値
 
-const float maxAllowableTemp = 30;  // 高温側閾値
+const float maxAllowableTemp = 60;  // 高温側閾値
 const float minAllowableTemp = 10;  // 低温側閾値
 
 #endif
