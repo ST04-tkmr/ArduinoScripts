@@ -23,8 +23,8 @@ mcp2518fd CAN(SPI_CS_PIN); // Set CS pin
 #ifdef CAN_2515
 */
 #include "mcp2515_can.h"
-//mcp2515_can CAN(SPI_CS_PIN); // Set CS pin
-//#endif
+// mcp2515_can CAN(SPI_CS_PIN); // Set CS pin
+// #endif
 
 union CAN_Temp_MSG
 {
@@ -50,6 +50,28 @@ public:
     CAN_Temp(const unsigned long id);
 
     void init(void);
+
+    inline float getTemp(Type type)
+    {
+        switch (type)
+        {
+        case Type::AVR_TEMP:
+            return tempPara->calcPhysical(msg->avrTemp);
+            break;
+
+        case Type::MAX_TEMP:
+            return tempPara->calcPhysical(msg->maxTemp);
+            break;
+
+        case Type::MIN_TEMP:
+            return tempPara->calcPhysical(msg->minTemp);
+            break;
+
+        default:
+            return tempPara->getMaxPhysical();
+            break;
+        }
+    }
 
     unsigned char setTemp(Type type, float physicalValue);
 

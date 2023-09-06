@@ -7,7 +7,8 @@ const unsigned long SEG2_ID = 0x342;
 const unsigned long SEG3_ID = 0x343;
 const unsigned long SEG4_ID = 0x344;
 
-enum Type {
+enum Type
+{
     AVR_TEMP,
     MAX_TEMP,
     MIN_TEMP
