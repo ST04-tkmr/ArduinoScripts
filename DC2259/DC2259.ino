@@ -69,15 +69,15 @@ In this sketch book:
 *******************************************************************************************/
 
 /************************* Includes ***************************/
-#include <Arduino.h>
+//#include <Arduino.h>
 #include <stdint.h>
 #include <SPI.h>
 #include "Linduino.h"
 #include "LT_SPI.h"
-#include "LT_I2C.h"          
-#include "QuikEval_EEPROM.h"
-#include "UserInterface.h"   
-#include "LTC681x.h"
+//#include "LT_I2C.h"          
+//#include "QuikEval_EEPROM.h"
+//#include "UserInterface.h"   
+//#include "LTC681x.h"
 #include "LTC6811.h"
 
 /************************* Defines *****************************/
@@ -87,28 +87,28 @@ In this sketch book:
 #define DATALOG_DISABLED 0
 
 /**************** Local Function Declaration *******************/
-void measurement_loop(uint8_t datalog_en);
-void print_menu(void);
-void print_wrconfig(void);
-void print_rxconfig(void);
-void print_cells(uint8_t datalog_en);
-void print_aux(uint8_t datalog_en);
-void print_stat(void);
-void print_sumofcells(void);
+//void measurement_loop(uint8_t datalog_en);
+//void print_menu(void);
+//void print_wrconfig(void);
+//void print_rxconfig(void);
+//void print_cells(uint8_t datalog_en);
+//void print_aux(uint8_t datalog_en);
+//void print_stat(void);
+//void print_sumofcells(void);
 void check_mux_fail(void);
-void print_selftest_errors(uint8_t adc_reg ,int8_t error);
-void print_overlap_results(int8_t error);
-void print_digital_redundancy_errors(uint8_t adc_reg ,int8_t error);
-void print_open_wires(void);
-void print_pec_error_count(void);
+//void print_selftest_errors(uint8_t adc_reg ,int8_t error);
+//void print_overlap_results(int8_t error);
+//void print_digital_redundancy_errors(uint8_t adc_reg ,int8_t error);
+//void print_open_wires(void);
+//void print_pec_error_count(void);
 int8_t select_s_pin(void);
-void print_wrpwm(void);
-void print_rxpwm(void);
-void print_wrsctrl(void);
-void print_rxsctrl(void); 
-void print_wrcomm(void);
-void print_rxcomm(void);
-void print_conv_time(uint32_t conv_time);
+//void print_wrpwm(void);
+//void print_rxpwm(void);
+//void print_wrsctrl(void);
+//void print_rxsctrl(void); 
+//void print_wrcomm(void);
+//void print_rxcomm(void);
+//void print_conv_time(uint32_t conv_time);
 void check_error(int error);
 void serial_print_text(char data[]);
 void serial_print_hex(uint8_t data);
@@ -119,32 +119,32 @@ char get_char(void);
   Setup Variables
   The following variables can be modified to configure the software.
 ********************************************************************/
-const uint8_t TOTAL_IC = 3;//!< Number of ICs in the daisy chain
+const uint8_t TOTAL_IC = 8;//!< Number of ICs in the daisy chain
 
 //ADC Command Configurations. See LTC681x.h for options.
-const uint8_t ADC_OPT = ADC_OPT_DISABLED; //!< ADC Mode option bit
+//const uint8_t ADC_OPT = ADC_OPT_DISABLED; //!< ADC Mode option bit
 const uint8_t ADC_CONVERSION_MODE = MD_7KHZ_3KHZ; //!< ADC Mode
 const uint8_t ADC_DCP = DCP_ENABLED; //!< Discharge Permitted 
 const uint8_t CELL_CH_TO_CONVERT = CELL_CH_ALL; //!< Channel Selection for ADC conversion
-const uint8_t AUX_CH_TO_CONVERT = AUX_CH_ALL; //!< Channel Selection for ADC conversion
-const uint8_t STAT_CH_TO_CONVERT = STAT_CH_ALL; //!< Channel Selection for ADC conversion
+//const uint8_t AUX_CH_TO_CONVERT = AUX_CH_ALL; //!< Channel Selection for ADC conversion
+//const uint8_t STAT_CH_TO_CONVERT = STAT_CH_ALL; //!< Channel Selection for ADC conversion
 const uint8_t SEL_ALL_REG = REG_ALL; //!< Register Selection 
-const uint8_t SEL_REG_A = REG_1; //!< Register Selection 
-const uint8_t SEL_REG_B = REG_2; //!< Register Selection 
+//const uint8_t SEL_REG_A = REG_1; //!< Register Selection 
+//const uint8_t SEL_REG_B = REG_2; //!< Register Selection 
 
-const uint16_t MEASUREMENT_LOOP_TIME = 500; //!< Loop Time in milliseconds(ms)
+//const uint16_t MEASUREMENT_LOOP_TIME = 500; //!< Loop Time in milliseconds(ms)
 
 //Under Voltage and Over Voltage Thresholds
 const uint16_t OV_THRESHOLD = 41000; //!< Over voltage threshold ADC Code. LSB = 0.0001 ---(4.1V)
 const uint16_t UV_THRESHOLD = 30000; //!< Under voltage threshold ADC Code. LSB = 0.0001 ---(3V)
-
+/*
 //Loop Measurement Setup. These Variables are ENABLED or DISABLED. Remember ALL CAPS
 const uint8_t WRITE_CONFIG = DISABLED;  //!< This is to ENABLED or DISABLED writing into to configuration registers in a continuous loop
 const uint8_t READ_CONFIG = DISABLED; //!< This is to ENABLED or DISABLED reading the configuration registers in a continuous loop
 const uint8_t MEASURE_CELL = ENABLED; //!< This is to ENABLED or DISABLED measuring the cell voltages in a continuous loop
 const uint8_t MEASURE_AUX = DISABLED; //!< This is to ENABLED or DISABLED reading the auxiliary registers in a continuous loop
 const uint8_t MEASURE_STAT = DISABLED; //!< This is to ENABLED or DISABLED reading the status registers in a continuous loop
-const uint8_t PRINT_PEC = DISABLED; //!< This is to ENABLED or DISABLED printing the PEC Error Count in a continuous loop
+const uint8_t PRINT_PEC = DISABLED; //!< This is to ENABLED or DISABLED printing the PEC Error Count in a continuous loop*/
 /************************************
   END SETUP
 *************************************/
@@ -170,6 +170,9 @@ bool DCCBITS_A[12] = {false,false,false,false,false,false,false,false,false,fals
 bool DCTOBITS[4] = {true, false, true, false}; //!< Discharge time value // Dcto 0,1,2,3 // Programed for 4 min 
 /*Ensure that Dcto bits are set according to the required discharge time. Refer to the data sheet */
 
+int8_t error = 0;
+uint32_t conv_time = 0;
+
 /*!**********************************************************************
  \brief  Initializes hardware and variables
  @return void
@@ -186,7 +189,9 @@ void setup()
   }
   LTC6811_reset_crc_count(TOTAL_IC,BMS_IC);
   LTC6811_init_reg_limits(TOTAL_IC,BMS_IC);
-  print_menu();
+  //print_menu();
+
+  run_command(3);
 }
 
 /*!*********************************************************************
@@ -195,20 +200,23 @@ void setup()
 ***********************************************************************/
 void loop()
 {
+  /*
   if (Serial.available())           // Check for user input
   {
     uint32_t user_command;
     user_command = read_int();      // Read the user command
     if(user_command=='m')
     { 
-      print_menu();
+      //print_menu();
     }
     else
     { 
       Serial.println(user_command);
-      run_command(user_command); 
+      //run_command(user_command); 
     }   
-  }
+  }*/
+
+  run_command(4);
 }
 
 /*!*****************************************
@@ -223,7 +231,7 @@ void run_command(uint32_t cmd)
   int8_t s_pin_read=0;
   
   switch (cmd)
-  {
+  {/*
     case 1: // Write and Read Configuration Register
       wakeup_sleep(TOTAL_IC);
       LTC6811_wrcfg(TOTAL_IC,BMS_IC); // Write into Configuration Register
@@ -231,100 +239,100 @@ void run_command(uint32_t cmd)
       wakeup_idle(TOTAL_IC);
       error = LTC6811_rdcfg(TOTAL_IC,BMS_IC); // Read Configuration Register
       check_error(error);
-      print_rxconfig();
+      //print_rxconfig();
       break;
 
     case 2: // Read Configuration Register
       wakeup_sleep(TOTAL_IC);
       error = LTC6811_rdcfg(TOTAL_IC,BMS_IC);
       check_error(error);
-      print_rxconfig();
-      break;
+      //print_rxconfig();
+      break;*/
 
     case 3: // Start Cell ADC Measurement
       wakeup_sleep(TOTAL_IC);
       LTC6811_adcv(ADC_CONVERSION_MODE,ADC_DCP,CELL_CH_TO_CONVERT);
       conv_time = LTC6811_pollAdc();
-      print_conv_time(conv_time);
+      //print_conv_time(conv_time);
       break;
 
     case 4: // Read Cell Voltage Registers
       wakeup_sleep(TOTAL_IC);
       error = LTC6811_rdcv(SEL_ALL_REG, TOTAL_IC,BMS_IC); // Set to read back all cell voltage registers
       check_error(error);
-      print_cells(DATALOG_DISABLED);
+      //print_cells(DATALOG_DISABLED);
       break;
-
+/*
     case 5: // Start GPIO ADC Measurement
       wakeup_sleep(TOTAL_IC);
       LTC6811_adax(ADC_CONVERSION_MODE, AUX_CH_TO_CONVERT);
       conv_time = LTC6811_pollAdc();
-      print_conv_time(conv_time); 
+      //print_conv_time(conv_time); 
       break;
 
     case 6: // Read AUX Voltage Registers
       wakeup_sleep(TOTAL_IC);
       error = LTC6811_rdaux(SEL_ALL_REG,TOTAL_IC,BMS_IC); // Set to read back all aux registers
       check_error(error);
-      print_aux(DATALOG_DISABLED);
+      //print_aux(DATALOG_DISABLED);
       break;
 
     case 7: // Start Status ADC Measurement
       wakeup_sleep(TOTAL_IC);
       LTC6811_adstat(ADC_CONVERSION_MODE, STAT_CH_TO_CONVERT);
       conv_time=LTC6811_pollAdc();
-      print_conv_time(conv_time);
+      //print_conv_time(conv_time);
       break;
 
     case 8: // Read Status registers
       wakeup_sleep(TOTAL_IC);
       error = LTC6811_rdstat(SEL_ALL_REG,TOTAL_IC,BMS_IC); // Set to read back all stat registers
       check_error(error);
-      print_stat();
+      //print_stat();
       break;
 
     case 9:// Start Combined Cell Voltage and GPIO1, GPIO2 Conversion and Poll Status
       wakeup_sleep(TOTAL_IC);
       LTC6811_adcvax(ADC_CONVERSION_MODE,ADC_DCP);
       conv_time = LTC6811_pollAdc();
-      print_conv_time(conv_time);
+      //print_conv_time(conv_time);
       wakeup_idle(TOTAL_IC);
       error =LTC6811_rdcv(SEL_ALL_REG, TOTAL_IC,BMS_IC); // Set to read back all cell voltage registers
       check_error(error);
-      print_cells(DATALOG_DISABLED);     
+      //print_cells(DATALOG_DISABLED);     
       wakeup_idle(TOTAL_IC);
       error = LTC6811_rdaux(SEL_REG_A,TOTAL_IC,BMS_IC); // Set to read back aux registers A
       check_error(error);
-      print_aux(DATALOG_DISABLED);
+      //print_aux(DATALOG_DISABLED);
       break;
       
     case 10: //Start Combined Cell Voltage and Sum of cells
       wakeup_sleep(TOTAL_IC);
       LTC6811_adcvsc(ADC_CONVERSION_MODE,ADC_DCP);
       conv_time = LTC6811_pollAdc();
-      print_conv_time(conv_time);
+      //print_conv_time(conv_time);
       wakeup_idle(TOTAL_IC);
       error = LTC6811_rdcv(SEL_ALL_REG, TOTAL_IC,BMS_IC); // Set to read back all cell voltage registers
       check_error(error);
-      print_cells(DATALOG_DISABLED);
+      //print_cells(DATALOG_DISABLED);
       wakeup_idle(TOTAL_IC);
       error = LTC6811_rdstat(SEL_REG_A,TOTAL_IC,BMS_IC); // Set to read stat registers A
       check_error(error);
-      print_sumofcells();
+      //print_sumofcells();
       break;
       
     case 11: // Loop Measurements of configuration register or cell voltages or auxiliary register or status register without data-log output
       wakeup_sleep(TOTAL_IC);
       LTC6811_wrcfg(TOTAL_IC,BMS_IC);
       measurement_loop(DATALOG_DISABLED);
-      print_menu();
+      //print_menu();
       break;
 
     case 12: //Data-log print option Loop Measurements of configuration register or cell voltages or auxiliary register or status register
       wakeup_sleep(TOTAL_IC);
       LTC6811_wrcfg(TOTAL_IC,BMS_IC);
       measurement_loop(DATALOG_ENABLED);
-      print_menu();
+      //print_menu();
       break;
 
     case 13: // Clear all ADC measurement registers
@@ -334,49 +342,49 @@ void run_command(uint32_t cmd)
       LTC6811_clrstat();
       wakeup_idle(TOTAL_IC);    
       LTC6811_rdcv(SEL_ALL_REG, TOTAL_IC,BMS_IC); // Read back all cell voltage registers
-      print_cells(DATALOG_DISABLED);
+      //print_cells(DATALOG_DISABLED);
 
       LTC6811_rdaux(SEL_ALL_REG,TOTAL_IC,BMS_IC); // Read back all aux registers
-      print_aux(DATALOG_DISABLED);
+      //print_aux(DATALOG_DISABLED);
 
       LTC6811_rdstat(SEL_ALL_REG,TOTAL_IC,BMS_IC); // Read back all stat 
-      print_stat();           
+      //print_stat();           
       break;
         
     case 14: //Read CV,AUX and ADSTAT Voltages 
       wakeup_sleep(TOTAL_IC);
       LTC6811_adcv(ADC_CONVERSION_MODE,ADC_DCP,CELL_CH_TO_CONVERT);
       conv_time = LTC6811_pollAdc();
-      print_conv_time(conv_time);
+      //print_conv_time(conv_time);
       wakeup_idle(TOTAL_IC);      
       error = LTC6811_rdcv(SEL_ALL_REG, TOTAL_IC,BMS_IC); // Set to read back all cell voltage registers
       check_error(error);
-      print_cells(DATALOG_DISABLED);
+      //print_cells(DATALOG_DISABLED);
 
       wakeup_sleep(TOTAL_IC);
       LTC6811_adax(ADC_CONVERSION_MODE , AUX_CH_TO_CONVERT);
       conv_time = LTC6811_pollAdc();
-      print_conv_time(conv_time);
+      //print_conv_time(conv_time);
       wakeup_idle(TOTAL_IC); 
       error = LTC6811_rdaux(SEL_ALL_REG,TOTAL_IC,BMS_IC); // Set to read back all aux registers
       check_error(error);
-      print_aux(DATALOG_DISABLED);   
+      //print_aux(DATALOG_DISABLED);   
 
       wakeup_sleep(TOTAL_IC);
       LTC6811_adstat(ADC_CONVERSION_MODE, STAT_CH_TO_CONVERT);
       conv_time = LTC6811_pollAdc();
-      print_conv_time(conv_time);
+      //print_conv_time(conv_time);
       wakeup_idle(TOTAL_IC);
       error = LTC6811_rdstat(SEL_ALL_REG,TOTAL_IC,BMS_IC); // Set to read back all status registers 
       check_error(error);
-      print_stat();    
+      //print_stat();    
       break;
 
     case 15: // Run the Mux Decoder Self Test
       wakeup_sleep(TOTAL_IC);
       LTC6811_diagn();
       conv_time = LTC6811_pollAdc();
-      print_conv_time(conv_time); 
+      //print_conv_time(conv_time); 
       error = LTC6811_rdstat(SEL_REG_B,TOTAL_IC,BMS_IC); // Set to read back status register B
       check_error(error);
       check_mux_fail();
@@ -386,43 +394,43 @@ void run_command(uint32_t cmd)
       error =0;
       wakeup_sleep(TOTAL_IC);
       error = LTC6811_run_cell_adc_st(CELL,TOTAL_IC,BMS_IC, ADC_CONVERSION_MODE, ADCOPT);
-      print_selftest_errors(CELL, error);
+      //print_selftest_errors(CELL, error);
       
       error =0;
       wakeup_sleep(TOTAL_IC);
       error = LTC6811_run_cell_adc_st(AUX,TOTAL_IC, BMS_IC, ADC_CONVERSION_MODE, ADCOPT);
-      print_selftest_errors(AUX, error);
+      //print_selftest_errors(AUX, error);
 
       error =0;
       wakeup_sleep(TOTAL_IC);
       error = LTC6811_run_cell_adc_st(STAT,TOTAL_IC, BMS_IC, ADC_CONVERSION_MODE, ADCOPT);
       print_selftest_errors(STAT, error);
-      print_menu();
+      //print_menu();
       break;
       
     case 17: // Run ADC Overlap self test
       error =0;
       wakeup_sleep(TOTAL_IC);
       error = (int8_t)LTC6811_run_adc_overlap(TOTAL_IC,BMS_IC);
-      print_overlap_results(error);
+      //print_overlap_results(error);
       break;
 
     case 18: // Run ADC Digital Redundancy self test
       error =0;
       wakeup_sleep(TOTAL_IC);
       error = LTC6811_run_adc_redundancy_st(ADC_CONVERSION_MODE,AUX,TOTAL_IC, BMS_IC);
-      print_digital_redundancy_errors(AUX, error);
+      //print_digital_redundancy_errors(AUX, error);
 
       error =0;
       wakeup_sleep(TOTAL_IC);
       error = LTC6811_run_adc_redundancy_st(ADC_CONVERSION_MODE,STAT,TOTAL_IC, BMS_IC);
-      print_digital_redundancy_errors(STAT, error);
+      //print_digital_redundancy_errors(STAT, error);
       break;
 
     case 19: // Open Wire test for single cell detection
       wakeup_sleep(TOTAL_IC);         
       LTC6811_run_openwire_single(TOTAL_IC, BMS_IC);
-      print_open_wires();  
+      //print_open_wires();  
       break;
 
     case 20: // Open Wire test for multiple cell and two consecutive cells detection
@@ -431,12 +439,12 @@ void run_command(uint32_t cmd)
       break;
 
     case 21:// PEC Errors Detected
-      print_pec_error_count();    
+      //print_pec_error_count();    
       break;
 
     case 22: // Reset PEC Counter
       LTC6811_reset_crc_count(TOTAL_IC,BMS_IC);
-      print_pec_error_count();
+      //print_pec_error_count();
       break;
       
     case 23: // Enable a discharge transistor
@@ -444,22 +452,22 @@ void run_command(uint32_t cmd)
       wakeup_sleep(TOTAL_IC);
       LTC6811_set_discharge(s_pin_read,TOTAL_IC,BMS_IC);
       LTC6811_wrcfg(TOTAL_IC,BMS_IC);   
-      print_wrconfig();
+      //print_wrconfig();
       wakeup_idle(TOTAL_IC);
       error = LTC6811_rdcfg(TOTAL_IC,BMS_IC);
       check_error(error);
-      print_rxconfig();
+      //print_rxconfig();
       break;
       
     case 24: // Clear all discharge transistors
       wakeup_sleep(TOTAL_IC);
       LTC6811_clear_discharge(TOTAL_IC,BMS_IC);
       LTC6811_wrcfg(TOTAL_IC,BMS_IC);    
-      print_wrconfig();
+      //print_wrconfig();
       wakeup_idle(TOTAL_IC);
       error = LTC6811_rdcfg(TOTAL_IC,BMS_IC);
       check_error(error);
-      print_rxconfig();
+      //print_rxconfig();
       break;
 
     case 25:// Write read pwm configuration     
@@ -471,7 +479,7 @@ void run_command(uint32_t cmd)
           required duty cycle. 
          Refer to the data sheet. 
       *******************************************************/ 
-      wakeup_sleep(TOTAL_IC);
+/*      wakeup_sleep(TOTAL_IC);
       for (uint8_t current_ic = 0; current_ic<TOTAL_IC;current_ic++) 
       {
         BMS_IC[current_ic].pwm.tx_data[0]= 0x88; // Duty cycle for S pin 2 and 1
@@ -482,11 +490,11 @@ void run_command(uint32_t cmd)
         BMS_IC[current_ic].pwm.tx_data[5]= 0x88; // Duty cycle for S pin 12 and 11
       }          
       LTC6811_wrpwm(TOTAL_IC,0,BMS_IC);
-      print_wrpwm(); 
+      //print_wrpwm(); 
 
       wakeup_idle(TOTAL_IC);
       LTC6811_rdpwm(TOTAL_IC,0,BMS_IC);       
-      print_rxpwm();                              
+      //print_rxpwm();                              
       break;
 
     case 26: // Write and read S Control Register Group
@@ -497,7 +505,7 @@ void run_command(uint32_t cmd)
          2)Choose the value depending on the required number of pulses on S pin. 
          Refer to the data sheet. 
       ***************************************************************************************/
-      for (uint8_t current_ic = 0; current_ic<TOTAL_IC;current_ic++) 
+/*      for (uint8_t current_ic = 0; current_ic<TOTAL_IC;current_ic++) 
       {
         BMS_IC[current_ic].sctrl.tx_data[0]=0xFF; // No. of high pulses on S pin 2 and 1
         BMS_IC[current_ic].sctrl.tx_data[1]=0xFF; // No. of high pulses on S pin 4 and 3
@@ -507,7 +515,7 @@ void run_command(uint32_t cmd)
         BMS_IC[current_ic].sctrl.tx_data[5]=0xFF; // No. of high pulses on S pin 12 and 11
       }
       LTC6811_wrsctrl(TOTAL_IC,streg,BMS_IC);
-      print_wrsctrl();
+      //print_wrsctrl();
 
       // Start S Control pulsing
       wakeup_idle(TOTAL_IC);
@@ -517,7 +525,7 @@ void run_command(uint32_t cmd)
       wakeup_idle(TOTAL_IC);
       error=LTC6811_rdsctrl(TOTAL_IC,streg,BMS_IC);
       check_error(error);
-      print_rxsctrl();
+      //print_rxsctrl();
       break;
 
     case 27: // Clear S Control Register Group
@@ -527,14 +535,14 @@ void run_command(uint32_t cmd)
       wakeup_idle(TOTAL_IC);
       error=LTC6811_rdsctrl(TOTAL_IC,streg,BMS_IC); // Read S Control Register Group
       check_error(error);
-      print_rxsctrl();
+      //print_rxsctrl();
       break;
       
     case 28://SPI Communication 
       /*************************************************************
          Ensure to set the GPIO bits to 1 in the CFG register group. 
       *************************************************************/  
-      for (uint8_t current_ic = 0; current_ic<TOTAL_IC;current_ic++) 
+/*      for (uint8_t current_ic = 0; current_ic<TOTAL_IC;current_ic++) 
       {
         //Communication control bits and communication data bytes. Refer to the data sheet.
         BMS_IC[current_ic].com.tx_data[0]= 0x81; // Icom CSBM Low(8) + data D0 (0x11)
@@ -546,7 +554,7 @@ void run_command(uint32_t cmd)
       }
       wakeup_sleep(TOTAL_IC);   
       LTC6811_wrcomm(TOTAL_IC,BMS_IC); // write to comm register                 
-      print_wrcomm(); // print data in the comm register
+      //print_wrcomm(); // print data in the comm register
 
       wakeup_idle(TOTAL_IC);
       LTC6811_stcomm(3); // data length=3 // initiates communication between master and the I2C slave
@@ -554,14 +562,14 @@ void run_command(uint32_t cmd)
       wakeup_idle(TOTAL_IC);
       error = LTC6811_rdcomm(TOTAL_IC,BMS_IC); // read from comm register                       
       check_error(error);
-      print_rxcomm();  // print received data into the comm register
+      //print_rxcomm();  // print received data into the comm register
       break;
 
   case 29: // write byte I2C Communication on the GPIO Ports(using I2C eeprom 24LC025)
        /************************************************************
          Ensure to set the GPIO bits to 1 in the CFG register group. 
       *************************************************************/   
-      for (uint8_t current_ic = 0; current_ic<TOTAL_IC;current_ic++) 
+/*      for (uint8_t current_ic = 0; current_ic<TOTAL_IC;current_ic++) 
       {
         //Communication control bits and communication data bytes. Refer to the data sheet.
         BMS_IC[current_ic].com.tx_data[0]= 0x6A; // Icom Start(6) + I2C_address D0 (0xA0)
@@ -573,7 +581,7 @@ void run_command(uint32_t cmd)
       }
       wakeup_sleep(TOTAL_IC);       
       LTC6811_wrcomm(TOTAL_IC,BMS_IC); // write to comm register    
-      print_wrcomm(); // print transmitted data from the comm register
+      //print_wrcomm(); // print transmitted data from the comm register
 
       wakeup_idle(TOTAL_IC);
       LTC6811_stcomm(3); // data length=3 // initiates communication between master and the I2C slave
@@ -581,14 +589,14 @@ void run_command(uint32_t cmd)
       wakeup_idle(TOTAL_IC);
       error = LTC6811_rdcomm(TOTAL_IC,BMS_IC); // read from comm register                       
       check_error(error);
-      print_rxcomm(); // print received data into the comm register  
+      //print_rxcomm(); // print received data into the comm register  
       break; 
 
     case 30: // Read byte data I2C Communication on the GPIO Ports(using I2C eeprom 24LC025)
       /************************************************************
          Ensure to set the GPIO bits to 1 in the CFG register group.  
       *************************************************************/     
-      for (uint8_t current_ic = 0; current_ic<TOTAL_IC;current_ic++) 
+/*      for (uint8_t current_ic = 0; current_ic<TOTAL_IC;current_ic++) 
       {
         //Communication control bits and communication data bytes. Refer to the data sheet.        
         BMS_IC[current_ic].com.tx_data[0]= 0x6A; // Icom Start (6) + I2C_address D0 (A0) (Write operation to set the word address)
@@ -624,7 +632,7 @@ void run_command(uint32_t cmd)
       wakeup_idle(TOTAL_IC);
       error = LTC6811_rdcomm(TOTAL_IC,BMS_IC); // read from comm register                
       check_error(error);
-      print_rxcomm(); // print received data from the comm register    
+      //print_rxcomm(); // print received data from the comm register    
       break;    
 
     case 31: // Set or reset the gpio pins(to drive output on gpio pins)
@@ -632,23 +640,23 @@ void run_command(uint32_t cmd)
        Please ensure you have set the GPIO bits according to your requirement 
        in the configuration register.( check the global variable GPIOBITS_A )
       ************************************************************************/   
-      wakeup_sleep(TOTAL_IC);
+/*      wakeup_sleep(TOTAL_IC);
       for (uint8_t current_ic = 0; current_ic<TOTAL_IC;current_ic++) 
       {
         LTC6811_set_cfgr(current_ic,BMS_IC,REFON,ADCOPT,GPIOBITS_A,DCCBITS_A, DCTOBITS, UV, OV);
       } 
       wakeup_idle(TOTAL_IC);
       LTC6811_wrcfg(TOTAL_IC,BMS_IC);
-      print_wrconfig();
+      //print_wrconfig();
       break;
     
     case 'm': //prints menu
-      print_menu();
-      break;
+      //print_menu();
+      break;*/
 
     default:
-      char str_error[]="Incorrect Option \n";
-      serial_print_text(str_error);
+      //char str_error[]="Incorrect Option \n";
+      //serial_print_text(str_error);
       break;
   }
 }
@@ -657,24 +665,25 @@ void run_command(uint32_t cmd)
  \brief For writing/reading configuration data or measuring cell voltages or reading aux register or reading status register in a continuous loop  
  @return void
 *************************************************************************************************************************************************/
+/*
 void measurement_loop(uint8_t datalog_en)
 {
   int8_t error = 0;
   char input = 0;
   
-  Serial.println(F("Transmit 'm' to quit"));
+  //Serial.println(F("Transmit 'm' to quit"));
   
   while (input != 'm')
   {
      if (Serial.available() > 0)
       {
-        input = read_char();
+        //input = read_char();
       } 
     if (WRITE_CONFIG == ENABLED)
     {
       wakeup_sleep(TOTAL_IC);
       LTC6811_wrcfg(TOTAL_IC,BMS_IC);
-      print_wrconfig();
+      //print_wrconfig();
     }
   
     if (READ_CONFIG == ENABLED)
@@ -682,7 +691,7 @@ void measurement_loop(uint8_t datalog_en)
       wakeup_sleep(TOTAL_IC);
       error = LTC6811_rdcfg(TOTAL_IC,BMS_IC);
       check_error(error);
-      print_rxconfig();
+      //print_rxconfig();
     }
   
     if (MEASURE_CELL == ENABLED)
@@ -693,7 +702,7 @@ void measurement_loop(uint8_t datalog_en)
       wakeup_idle(TOTAL_IC);
       error = LTC6811_rdcv(SEL_ALL_REG, TOTAL_IC,BMS_IC);
       check_error(error);
-      print_cells(datalog_en);
+      //print_cells(datalog_en);
     }
   
     if (MEASURE_AUX == ENABLED)
@@ -704,7 +713,7 @@ void measurement_loop(uint8_t datalog_en)
       wakeup_idle(TOTAL_IC);
       error = LTC6811_rdaux(SEL_ALL_REG,TOTAL_IC,BMS_IC); // Set to read back all aux registers
       check_error(error);
-      print_aux(datalog_en);
+      //print_aux(datalog_en);
     }
   
     if (MEASURE_STAT == ENABLED)
@@ -715,22 +724,22 @@ void measurement_loop(uint8_t datalog_en)
       wakeup_idle(TOTAL_IC);
       error = LTC6811_rdstat(SEL_ALL_REG,TOTAL_IC,BMS_IC); // Set to read back all aux registers
       check_error(error);
-      print_stat();
+      //print_stat();
     }
   
     if (PRINT_PEC == ENABLED)
     {
-      print_pec_error_count();
+      //print_pec_error_count();
     }
 
     delay(MEASUREMENT_LOOP_TIME);
   }
-}
+}*/
 
 /*!*********************************
   \brief Prints the main menu
  @return void
-***********************************/
+***********************************
 void print_menu(void)
 {
   Serial.println(F("List of 6811 Commands: "));
@@ -748,13 +757,14 @@ void print_menu(void)
   
   Serial.println(F("Print 'm' for menu"));
   Serial.println(F("Please enter command: \n"));
-}
+}*/
 
 /*!******************************************************************************
  \brief Prints the configuration data that is going to be written to the LTC6811
  to the serial port.
  @return void
  ********************************************************************************/
+ /*
 void print_wrconfig(void)
 {
   int cfg_pec;
@@ -776,13 +786,14 @@ void print_wrconfig(void)
     serial_print_hex((uint8_t)(cfg_pec));
     Serial.println("\n");
   }
-}
+}*/
 
 /*!*****************************************************************
  \brief Prints the configuration data that was read back from the
  LTC6811 to the serial port.
   @return void
  *******************************************************************/
+ /*
 void print_rxconfig(void)
 {
   Serial.println(F("Received Configuration "));
@@ -801,12 +812,13 @@ void print_rxconfig(void)
     serial_print_hex(BMS_IC[current_ic].config.rx_data[7]);
     Serial.println("\n");
   }
-}
+}*/
 
 /*!************************************************************
   \brief Prints cell voltage to the serial port
    @return void
  *************************************************************/
+ /*
 void print_cells(uint8_t datalog_en)
 {
   for (int current_ic = 0 ; current_ic < TOTAL_IC; current_ic++)
@@ -836,12 +848,13 @@ void print_cells(uint8_t datalog_en)
     }
   }
   Serial.println("\n");
-}
+}*/
 
 /*!****************************************************************************
   \brief Prints GPIO voltage codes and Vref2 voltage code onto the serial port
  @return void
  *****************************************************************************/
+ /*
 void print_aux(uint8_t datalog_en)
 {
 
@@ -881,12 +894,13 @@ void print_aux(uint8_t datalog_en)
     }
   }
   Serial.println("\n");
-}
+}*/
 
 /*!****************************************************************************
   \brief Prints Status voltage codes and Vref2 voltage code onto the serial port
  @return void
  *****************************************************************************/
+ /*
 void print_stat(void)
 {
    double itmp;
@@ -923,12 +937,13 @@ void print_stat(void)
     serial_print_hex(BMS_IC[current_ic].stat.thsd[0]);
     Serial.println("\n");  
   }
-}
+}*/
 
 /*!****************************************************************************
   \brief Prints Status voltage codes for SOC onto the serial port
  @return void
  *****************************************************************************/
+ /*
 void print_sumofcells(void)
 {
  for (int current_ic =0 ; current_ic < TOTAL_IC; current_ic++)
@@ -941,7 +956,7 @@ void print_sumofcells(void)
     Serial.print(F(","));
   }
   Serial.println("\n");
-}
+}*/
 
 /*!****************************************************************
   \brief Function to check the MUX fail bit in the Status Register
@@ -965,6 +980,7 @@ void check_mux_fail(void)
   \brief Prints Errors Detected during self test
    @return void
 *************************************************************/
+/*
 void print_selftest_errors(uint8_t adc_reg ,int8_t error)
 {
   if(adc_reg==1)
@@ -981,22 +997,24 @@ void print_selftest_errors(uint8_t adc_reg ,int8_t error)
     }
   Serial.print(error, DEC);
   Serial.println(F(" : errors detected in Digital Filter and Memory \n"));
-}
+}*/
 
 /*!************************************************************
   \brief Prints the output of  the ADC overlap test  
    @return void
 *************************************************************/
+/*
 void print_overlap_results(int8_t error)
 {
   if (error==0) Serial.println(F("Overlap Test: PASS \n"));
   else Serial.println(F("Overlap Test: FAIL \n"));
-}
+}*/
 
 /*!************************************************************
   \brief Prints Errors Detected during Digital Redundancy test
    @return void
 *************************************************************/
+/*
 void print_digital_redundancy_errors(uint8_t adc_reg ,int8_t error)
 {
   if(adc_reg==2)
@@ -1010,12 +1028,13 @@ void print_digital_redundancy_errors(uint8_t adc_reg ,int8_t error)
 
   Serial.print(error, DEC);
   Serial.println(F(" : errors detected in Measurement \n"));
-}
+}*/
 
 /*****************************************************************************
   \brief Prints Open wire test results to the serial port
   @return void
  *****************************************************************************/
+ /*
 void print_open_wires(void)
 {
   for (int current_ic =0 ; current_ic < TOTAL_IC; current_ic++)
@@ -1034,12 +1053,13 @@ void print_open_wires(void)
     }
     Serial.println("\n");
   }
-}
+}*/
 
 /*!************************************************************
   \brief Prints the PEC errors detected to the serial port
   @return void
  *************************************************************/ 
+ /*
 void print_pec_error_count(void)
 {
   for (int current_ic=0; current_ic<TOTAL_IC; current_ic++)
@@ -1050,7 +1070,7 @@ void print_pec_error_count(void)
     Serial.println(current_ic+1,DEC);
   }
   Serial.println("\n");
-}
+}*/
 
 /*!****************************************************
   \brief Function to select the S pin for discharge
@@ -1061,7 +1081,7 @@ int8_t select_s_pin(void)
   int8_t read_s_pin=0;
   
   Serial.print(F("Please enter the Spin number: "));
-  read_s_pin = (int8_t)read_int();
+  //read_s_pin = (int8_t)read_int();
   Serial.println(read_s_pin);
   return(read_s_pin);
 }
@@ -1071,6 +1091,7 @@ int8_t select_s_pin(void)
  to the serial port.
   @return void
  ********************************************************************************/
+ /*
 void print_wrpwm(void)
 {
   int pwm_pec;
@@ -1092,13 +1113,14 @@ void print_wrpwm(void)
     serial_print_hex((uint8_t)(pwm_pec));
     Serial.println("\n");
   } 
-}
+}*/
 
 /*!*****************************************************************
  \brief Prints the PWM configuration data that was read back from the
  LTC6811 to the serial port.
  @return void
  *******************************************************************/
+ /*
 void print_rxpwm(void)
 {
   Serial.println(F("Received pwm Configuration:"));
@@ -1117,12 +1139,13 @@ void print_rxpwm(void)
     serial_print_hex(BMS_IC[current_ic].pwm.rx_data[7]);
     Serial.println("\n");
   }
-}
+}*/
 
 /*!************************************************************
   \brief Prints S control register data to the serial port
   @return void
  *************************************************************/ 
+ /*
 void print_wrsctrl(void)
 {
    int sctrl_pec;
@@ -1146,13 +1169,14 @@ void print_wrsctrl(void)
     serial_print_hex((uint8_t)(sctrl_pec));
     Serial.println("\n");
   }
-}
+}*/
 
 /*!************************************************************
   \brief Prints s control register data that was read back from the
  LTC6811 to the serial port.
 @return void
  *************************************************************/
+ /*
 void print_rxsctrl(void)
 {
   Serial.println(F("Received Data:"));
@@ -1173,12 +1197,13 @@ void print_rxsctrl(void)
     serial_print_hex(BMS_IC[current_ic].sctrl.rx_data[7]);
     Serial.println("\n");
   }
-}
+}*/
 
 /*!************************************************************
   \brief Prints comm register data to the serial port
   @return void
  *************************************************************/ 
+ /*
 void print_wrcomm(void)
 {
   int comm_pec;
@@ -1201,13 +1226,14 @@ void print_wrcomm(void)
     serial_print_hex((uint8_t)(comm_pec));
     Serial.println("\n");
   }
-}
+}*/
 
 /*!************************************************************
   \brief Prints comm register data that was read back from the
  LTC6811 to the serial port. 
  @return void
  *************************************************************/
+ /*
 void print_rxcomm(void)
 {
   Serial.println(F("Received Data in COMM register:"));
@@ -1227,12 +1253,13 @@ void print_rxcomm(void)
     serial_print_hex(BMS_IC[current_ic].com.rx_data[7]);
     Serial.println("\n");
   }
-}
+}*/
 
 /*!****************************************************************************
   \brief Function to print the Conversion Time
   @return void
  *****************************************************************************/
+ /*
 void print_conv_time(uint32_t conv_time)
 {
   uint16_t m_factor=1000;  // to print in ms
@@ -1240,7 +1267,7 @@ void print_conv_time(uint32_t conv_time)
   Serial.print(F("Conversion completed in:"));
   Serial.print(((float)conv_time/m_factor), 1);
   Serial.println(F("ms \n"));
-}
+}*/
 
 /*!************************************************************
   \brief Function to check error flag and print PEC error message
