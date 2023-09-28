@@ -1,9 +1,15 @@
 #ifndef _INVERTER_DFS_H_
 #define _INVERTER_DFS_H_
 
+/**
+ * If you use Arduino UNO R4, use "#define ARDUINO_UNO_R4"
+*/
 // #define ARDUINO_MEGA
 #define ARDUINO_UNO_R4
 
+/**
+ * Configuration when using CAN Bus Shield
+*/
 #ifndef ARDUINO_UNO_R4
 const int SPI_CS_PIN = 9;
 const int CAN_INT_PIN = 2;

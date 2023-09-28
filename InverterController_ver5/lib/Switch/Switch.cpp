@@ -15,6 +15,9 @@ void Switch::updateState(unsigned char readValue)
     chatt[1] = chatt[0];
     chatt[0] = (readValue & 0x01);
 
+    /**
+     * Flag showing that SW is pushed changes 0 to 1 when detecting rising.
+    */
     if (lastSW == 0 && SW == 1)
     {
         swFlag = 1;

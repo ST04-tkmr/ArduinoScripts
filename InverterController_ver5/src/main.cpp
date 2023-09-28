@@ -24,9 +24,10 @@ Switch *shutdownDetect;
  * flags[3] = driverFlag
  */
 unsigned char flags[4];
+
 unsigned char setupFlag;
 
-unsigned long deltaTime, lastTime, nowTime;
+//unsigned long deltaTime, lastTime, nowTime;
 
 unsigned short accVol = 400;
 
@@ -64,9 +65,11 @@ void setup()
     shutdownDetect = new Switch();
     pinMode(SHUTDOWN_DETECT, INPUT);
 
+    /*
     deltaTime = 0;
     lastTime = 0;
     nowTime = 0;
+    */
 
 #ifdef ARDUINO_UNO_R4
     AGTimer.init(500000, timerCallback);
@@ -84,10 +87,18 @@ void loop()
     val[0] = analogRead(ACCEL_SENSOR1);
     val[1] = analogRead(ACCEL_SENSOR2);
     accel->setValue(val[0], val[1]);
+
+    // If Torque Control Flag is 1, calculate torque from accelerator opening
     torque = flags[1] ? accel->getTorque() : 0;
 
     shutdownDetect->updateState(~digitalRead(SHUTDOWN_DETECT));
     flags[2] = shutdownDetect->getSWFlag();
+
+    /**
+     * Initial value of setupFlag is 0.
+     * When Low Voltage is ON, Shutdown Circuit is OPEN. In other words, shutdownFlag(flags[2]) is 1.
+     * If setupFlag is 0 and shutdownFlag is 1, this programs set setupFlag to 1 and reset shutdownFlag to 0.
+     */
     if (!setupFlag && flags[2])
     {
         shutdownDetect->resetFlag();
@@ -114,7 +125,12 @@ void loop()
     inverter->runInverter(flags, accVol, torque);
 
     digitalWrite(AIR_PLUS_SIG, flags[0]);
-    digitalWrite(AIR_MINUS_SIG, HIGH);
+
+    /**
+     * AIR_MINUS is directly connected with TSMS
+    */
+    digitalWrite(AIR_MINUS_SIG, LOW);
+
     digitalWrite(READY_TO_DRIVE_LED, flags[3]);
 
     inverter->sendMsgToInverter(0);
