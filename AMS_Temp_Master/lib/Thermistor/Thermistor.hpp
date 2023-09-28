@@ -97,15 +97,26 @@ public:
     inline float getR(unsigned char ecuIndex, unsigned char thmIndex) { return r[ecuIndex][thmIndex]; }
     inline float getTemp(unsigned char ecuIndex, unsigned char thmIndex) { return temp[ecuIndex][thmIndex]; }
 
+    inline float getAvrTemp(unsigned char ecuIndex)
+    {
+        float sum = 0;
+        for (int i = 0; i < thmNum; i++)
+        {
+            sum += temp[ecuIndex][i];
+        }
+        float avr = sum / ((float)thmNum);
+        return avr;
+    }
+
     /**
      * @fn  getMaxTemp
-     * 
+     *
      * @brief   各セグメントの最大温度を取得
-     * 
+     *
      * @param   ecuIndex    ECU番号（0~ecuNum）
-     * 
+     *
      * @return  セグメントの最大温度
-    */
+     */
     inline float getMaxTemp(unsigned char ecuIndex)
     {
         float maxTemp = -273.0f;
@@ -118,13 +129,13 @@ public:
 
     /**
      * @fn  getMinTemp
-     * 
+     *
      * @brief   各セグメントの最低温度を取得
-     * 
+     *
      * @param   ecuIndex    ECU番号（0~ecuNum）
-     * 
+     *
      * @return  セグメントの最低温度
-    */
+     */
     inline float getMinTemp(unsigned char ecuIndex)
     {
         float minTemp = 125.0f;

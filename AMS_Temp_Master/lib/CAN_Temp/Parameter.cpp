@@ -1,7 +1,7 @@
 #include "Parameter.hpp"
 
 Parameter::Parameter(short offset, float resolution, short minPhysical, short maxPhysical)
-    : offset(offset), resolution(resolution), minPhysical(minPhysical), maxPhysical(maxPhysical){}
+    : offset(offset), resolution(resolution), minPhysical(minPhysical), maxPhysical(maxPhysical) {}
 
 float Parameter::calcPhysical(unsigned short normal)
 {

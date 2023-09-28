@@ -53,15 +53,15 @@ unsigned char CAN_Temp::setTemp(Type type, float physicalValue)
 
     switch (type)
     {
-        case AVR_TEMP:
+    case AVR_TEMP:
         msg->avrTemp = tempPara->calcNormal(tempPara->getMaxPhysical());
         break;
 
-        case MAX_TEMP:
+    case MAX_TEMP:
         msg->maxTemp = tempPara->calcNormal(tempPara->getMaxPhysical());
         break;
 
-        case MIN_TEMP:
+    case MIN_TEMP:
         msg->minTemp = tempPara->calcNormal(tempPara->getMaxPhysical());
         break;
 
@@ -135,5 +135,4 @@ void CAN_Temp::checkBuf(unsigned char *buf)
 
 void CAN_Temp::checkMsg(void)
 {
-
 }

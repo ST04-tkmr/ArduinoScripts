@@ -33,9 +33,6 @@ void setup()
 
     Serial.begin(115200);
 
-    ACC_Temp = new CAN_Temp(ACC_ID);
-    ACC_Temp->init();
-
     MsTimer2::set(100, handler);
     MsTimer2::start();
 }
@@ -47,8 +44,10 @@ void loop()
         if (count < ecuNum)
         {
             // データリクエスト
+            /*
             Serial.print("count : ");
             Serial.println(count);
+            */
 
             Wire.requestFrom(adrs[count], sizeof(data));
 
@@ -61,6 +60,7 @@ void loop()
 
             thm->setData(count, data, sizeof(data));
 
+            /*
             Serial.print("raw data : ");
             Serial.println(count);
             for (char j = 0; j < thmNum; j++)
@@ -75,10 +75,12 @@ void loop()
             }
 
             Serial.println();
+            */
         }
         else
         {
             // CANバスにメッセージを流す
+            ACC_Temp->sendTempMsg(1);
         }
 
         countFlag = 1;
@@ -87,8 +89,13 @@ void loop()
     pastErrFlag[2] = pastErrFlag[1];
     pastErrFlag[1] = pastErrFlag[0];
 
+    float avr = 0;
     for (int i = 0; i < ecuNum; i++)
     {
+        avr += thm->getAvrTemp(i);
+        ACC_Temp->setTemp(Type::MAX_TEMP, thm->getMaxTemp(i) > ACC_Temp->getTemp(Type::MAX_TEMP) ? thm->getMaxTemp(i) : ACC_Temp->getTemp(Type::MAX_TEMP));
+        ACC_Temp->setTemp(Type::MIN_TEMP, thm->getMinTemp(i) < ACC_Temp->getTemp(Type::MIN_TEMP) ? thm->getMinTemp(i) : ACC_Temp->getTemp(Type::MIN_TEMP));
+
         if (thm->getMaxTemp(i) >= maxAllowableTemp)
         {
             pastErrFlag[0] = 1;
@@ -104,10 +111,12 @@ void loop()
             pastErrFlag[0] = 0;
         }
     }
+    avr = avr / ((float)ecuNum);
+    ACC_Temp->setTemp(Type::AVR_TEMP, avr);
 
-    //if (!dangerFlag)
+    // if (!dangerFlag)
     //{
-        dangerFlag = pastErrFlag[2] & pastErrFlag[1] & pastErrFlag[0];
+    dangerFlag = pastErrFlag[2] & pastErrFlag[1] & pastErrFlag[0];
     //}
 
     digitalWrite(DANGER_OUTPUT, !dangerFlag);
@@ -146,17 +155,25 @@ void handler(void)
 void _init_(unsigned long time)
 {
     count = 0;
+
     for (int i = 0; i < 8; i++)
     {
         data[i] = 0;
     }
-    thm = new Thermistor();
+
     countFlag = 0;
+
     for (int i = 0; i < 3; i++)
     {
         pastErrFlag[i] = 0;
     }
+
     dangerFlag = 0;
+
+    thm = new Thermistor();
+
+    ACC_Temp = new CAN_Temp(ACC_ID);
+    ACC_Temp->init();
 }
 
 void runCalibration(void)
