@@ -91,6 +91,10 @@ void loop()
     // If Torque Control Flag is 1, calculate torque from accelerator opening
     torque = flags[1] ? accel->getTorque() : 0;
 
+    /**
+     * SHUTDOWN_DETECT Port is pulldown
+     * When Shutdown Circuit is OPEN, digitalRead(SHUTdOWN_DETECT) will return 0
+    */
     shutdownDetect->updateState(~digitalRead(SHUTDOWN_DETECT));
     flags[2] = shutdownDetect->getSWFlag();
 
@@ -105,6 +109,10 @@ void loop()
         setupFlag = 1;
     }
 
+    /**
+     * READY_TO_DRIVE_SW Port is pulldown
+     * When Ready to Drive SW is pushed, digitalRead(READY_TO_DRIVE_SW) will return 1
+    */
     driveSW->updateState(digitalRead(READY_TO_DRIVE_SW));
     flags[3] = driveSW->getSWFlag();
 
