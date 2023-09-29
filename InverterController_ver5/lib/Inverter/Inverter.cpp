@@ -40,11 +40,6 @@ Inverter::~Inverter()
 
 void Inverter::init(void)
 {
-    Serial.begin(115200);
-    while (!Serial)
-    {
-    }
-
 #ifdef ARDUINO_UNO_R4
     if (!CAN.begin(CanBitRate::BR_500k))
     {
@@ -296,7 +291,7 @@ int Inverter::sendMsgToInverter(unsigned char printFlag)
     }
 
 #ifdef ARDUINO_UNO_R4
-    CanMsg msg(evecu1->getID(), sizeof(buf), buf);
+    CanMsg msg(CanStandardId(evecu1->getID()), sizeof(buf), buf);
 
     int const rc = CAN.write(msg);
 
