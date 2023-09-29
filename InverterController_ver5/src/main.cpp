@@ -10,12 +10,12 @@
 #include <MsTimer2.h>
 #endif
 
-Inverter *inverter;
-Accel *accel;
-int val[2];
-float torque;
-Switch *driveSW;
-Switch *shutdownDetect;
+Inverter *inverter = new Inverter();
+Accel *accel = new Accel();
+int val[2] = {0, 0};
+float torque = 0;
+Switch *driveSW = new Switch();
+Switch *shutdownDetect = new Switch();
 
 /**
  * flags[0] = airFlag
@@ -23,11 +23,15 @@ Switch *shutdownDetect;
  * flags[2] = shutdownFlag
  * flags[3] = driverFlag
  */
-unsigned char flags[4];
+unsigned char flags[4] = {0, 0, 0, 0};
 
-unsigned char setupFlag;
+unsigned char setupFlag = 0;
 
-//unsigned long deltaTime, lastTime, nowTime;
+/*
+unsigned long deltaTime = 0;
+unsigned long lastTime = 0;
+unsigned long nowTime = 0;
+*/
 
 unsigned short accVol = 400;
 
@@ -35,41 +39,21 @@ void timerCallback(void);
 
 void setup()
 {
-    inverter = new Inverter();
     inverter->init();
 
-    flags[0] = 0;
-    flags[1] = 0;
-    flags[2] = 0;
-    flags[3] = 0;
-    setupFlag = 0;
-
-    accel = new Accel();
-    val[0] = 0;
-    val[1] = 0;
     pinMode(ACCEL_SENSOR1, INPUT);
     pinMode(ACCEL_SENSOR2, INPUT);
 
-    driveSW = new Switch();
     pinMode(READY_TO_DRIVE_SW, INPUT);
     pinMode(READY_TO_DRIVE_LED, OUTPUT);
     digitalWrite(READY_TO_DRIVE_LED, LOW);
-
-    torque = 0;
 
     pinMode(AIR_PLUS_SIG, OUTPUT);
     digitalWrite(AIR_PLUS_SIG, LOW);
     pinMode(AIR_MINUS_SIG, OUTPUT);
     digitalWrite(AIR_MINUS_SIG, LOW);
 
-    shutdownDetect = new Switch();
     pinMode(SHUTDOWN_DETECT, INPUT);
-
-    /*
-    deltaTime = 0;
-    lastTime = 0;
-    nowTime = 0;
-    */
 
 #ifdef ARDUINO_UNO_R4
     AGTimer.init(500000, timerCallback);
