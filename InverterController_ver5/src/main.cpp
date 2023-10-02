@@ -39,7 +39,7 @@ void timerCallback(void);
 
 void setup()
 {
-    inverter->init();
+    Serial.begin(115200);
 
     pinMode(ACCEL_SENSOR1, INPUT);
     pinMode(ACCEL_SENSOR2, INPUT);
@@ -62,6 +62,8 @@ void setup()
     MsTimer2::set(500, timerCallback);
     MsTimer2::start();
 #endif
+
+    inverter->init();
 }
 
 void loop()
@@ -121,7 +123,7 @@ void loop()
     /**
      * AIR_MINUS is directly connected with TSMS
     */
-    digitalWrite(AIR_MINUS_SIG, LOW);
+    digitalWrite(AIR_MINUS_SIG, HIGH);
 
     digitalWrite(READY_TO_DRIVE_LED, flags[3]);
 
