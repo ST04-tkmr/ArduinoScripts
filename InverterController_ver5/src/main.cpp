@@ -39,7 +39,7 @@ void timerCallback(void);
 
 void setup()
 {
-    Serial.begin(115200);
+    inverter->init();
 
     pinMode(ACCEL_SENSOR1, INPUT);
     pinMode(ACCEL_SENSOR2, INPUT);
@@ -62,8 +62,6 @@ void setup()
     MsTimer2::set(500, timerCallback);
     MsTimer2::start();
 #endif
-
-    inverter->init();
 }
 
 void loop()
