@@ -126,6 +126,8 @@ void loop()
     digitalWrite(READY_TO_DRIVE_LED, flags[3]);
 
     inverter->sendMsgToInverter(0);
+
+    //delay(100);
 }
 
 void timerCallback(void)
