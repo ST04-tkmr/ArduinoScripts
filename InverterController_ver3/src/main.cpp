@@ -5,6 +5,15 @@
 #include "Switch.hpp"
 //#include "UserInterface.h"
 
+/**
+ * チェック項目
+ * - Inverter_dfs.hpp
+ *  - MAXIMUM_BATTERY_VOLTAGE
+ * - runInverterの引数
+ * - Accel_dfs.hpp
+ *  - MAXIMUM_TORQUE
+*/
+
 #define ACCEL_SENSOR1 (A0)
 #define ACCEL_SENSOR2 (A1)
 #define READY_TO_DRIVE_SW (11)
@@ -119,7 +128,7 @@ void loop()
         driveSW->resetFlag();
     }
 
-    inverter->runInverter(flags, 400, torque);
+    inverter->runInverter(flags, 380, torque);
 
     digitalWrite(AIR_PLUS_SIG, flags[0]);
     digitalWrite(AIR_MINUS_SIG, HIGH);
