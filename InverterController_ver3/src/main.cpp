@@ -7,8 +7,6 @@
 
 /**
  * チェック項目
- * - Inverter_dfs.hpp
- *  - MAXIMUM_BATTERY_VOLTAGE
  * - runInverterの引数
  * - Accel_dfs.hpp
  *  - MAXIMUM_TORQUE

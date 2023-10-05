@@ -21,8 +21,7 @@ float Accel::calcTorque()
         }
         else if (v > MAXIMUM_SENSOR_VOLTAGE)
         {
-            //v = MAXIMUM_SENSOR_VOLTAGE;
-            return 0;
+            v = MAXIMUM_SENSOR_VOLTAGE;
         }
 
         return MAXIMUM_TORQUE * (v - MINIMUM_SENSOR_VOLTAGE);

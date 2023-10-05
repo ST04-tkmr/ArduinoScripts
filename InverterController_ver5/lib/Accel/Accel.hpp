@@ -9,7 +9,7 @@ private:
     int val[2];                     // センサから読み取った値(0~1023)
     unsigned short avr;             // 2つのセンサ値の平均
     unsigned char devErrorFlag;     // 偏差異常フラグ
-    float dev;                        // センサ値の差異[%]
+    float dev;                      // センサ値の差異[%]
     unsigned char lastDevError;     // ノイズ対策
     unsigned char devError;         // ノイズ対策
     unsigned char chatt[3];         // ノイズ対策
