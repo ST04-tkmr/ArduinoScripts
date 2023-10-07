@@ -8,7 +8,10 @@
  * CHECK LIST
  * > Argument of runInverter()
  * > Accel_dfs.hpp
- *  -MAXIMUM_TORQUE
+ *  - MAXIMUM_TORQUE
+ * > What MCU is used
+ *  > Inverter_dfs.hpp
+ *      - #define ARDUINO_UNO_R4 or #define ARDUINO_MEGA
 */
 
 #ifdef ARDUINO_UNO_R4
@@ -41,6 +44,8 @@ unsigned long nowTime = 0;
 unsigned short accVol = 370;
 
 float deviation = 100;
+
+unsigned char CANErrorCount = 0;
 
 void timerCallback(void);
 
@@ -171,7 +176,7 @@ void loop()
 
     digitalWrite(READY_TO_DRIVE_LED, flags[3]);
 
-    inverter->sendMsgToInverter(0);
+    unsigned char result = inverter->sendMsgToInverter(0);
 
     //delay(100);
 }
