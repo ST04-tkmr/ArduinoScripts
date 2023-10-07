@@ -2,6 +2,10 @@
 #define _AGTIMERR4_H_
 
 #include <Arduino.h>
+#include "Inverter_dfs.hpp"
+
+#ifdef ARDUINO_UNO_R4
+
 #include <FspTimer.h>
 
 class AGTimerR4
@@ -21,5 +25,7 @@ public:
 };
 
 extern AGTimerR4 AGTimer;
+
+#endif
 
 #endif

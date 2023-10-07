@@ -147,7 +147,7 @@ void loop()
      * Sequence is below.
      * GLVMS -> AMS, BSPD, IMD Reset -> TSMS -> Precharge -> RtDSW
     */
-    if (flags[3] && ~(flags[0] & flags[1]))
+    if (flags[3] && !(flags[0] && flags[1]))
     {
         flags[3] = 0;
         driveSW->resetFlag();
@@ -167,6 +167,33 @@ void loop()
 
     inverter->runInverter(flags, accVol, torque);
 
+    unsigned char result = inverter->sendMsgToInverter(0);
+
+#ifdef ARDUINO_UNO_R4
+    if (result < 0)
+    {
+        CANErrorCount++;
+    }
+    else
+    {
+        CANErrorCount = 0;
+    }
+#else
+    if (result != 0)
+    {
+        CANErrorCount++;
+    }
+    else
+    {
+        CANErrorCount = 0;
+    }
+#endif
+
+    if (CANErrorCount > 3)
+    {
+        flags[0] = 0;
+    }
+
     digitalWrite(AIR_PLUS_SIG, flags[0]);
 
     /**
@@ -175,8 +202,6 @@ void loop()
     digitalWrite(AIR_MINUS_SIG, LOW);
 
     digitalWrite(READY_TO_DRIVE_LED, flags[3]);
-
-    unsigned char result = inverter->sendMsgToInverter(0);
 
     //delay(100);
 }

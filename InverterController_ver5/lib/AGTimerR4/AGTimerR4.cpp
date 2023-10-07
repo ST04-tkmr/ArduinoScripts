@@ -1,3 +1,7 @@
+#include "Inverter_dfs.hpp"
+
+#ifdef ARDUINO_UNO_R4
+
 #include "AGTimerR4.hpp"
 
 #define CLOCK_FREQ_DIV1 24000000.0f
@@ -72,3 +76,5 @@ bool AGTimerR4::stop(void)
 {
     return fsp_timer.stop();
 }
+
+#endif
