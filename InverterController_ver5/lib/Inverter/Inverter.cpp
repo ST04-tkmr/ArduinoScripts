@@ -298,7 +298,7 @@ int Inverter::sendMsgToInverter(unsigned char printFlag)
     }
 
 #ifdef ARDUINO_UNO_R4
-    CanMsg msg(CanStandardId(evecu1->getID()), sizeof(buf), buf);
+    CanMsg const msg(CanStandardId(evecu1->getID()), sizeof(buf), buf);
 
     int const rc = CAN.write(msg);
 

@@ -4,8 +4,8 @@
 /**
  * If you use Arduino UNO R4, use "#define ARDUINO_UNO_R4"
 */
-#define ARDUINO_MEGA
-//#define ARDUINO_UNO_R4
+//#define ARDUINO_MEGA
+#define ARDUINO_UNO_R4
 
 /**
  * Configuration when using CAN Bus Shield
