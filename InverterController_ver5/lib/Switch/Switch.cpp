@@ -28,3 +28,8 @@ void Switch::resetFlag()
 {
     swFlag = 0;
 }
+
+void Switch::setFlag()
+{
+    swFlag = 1;
+}

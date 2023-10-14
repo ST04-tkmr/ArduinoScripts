@@ -165,8 +165,6 @@ void loop()
     }
     */
 
-    inverter->runInverter(flags, accVol, torque);
-
     unsigned char result = inverter->sendMsgToInverter(0);
 
 #ifdef ARDUINO_UNO_R4
@@ -191,8 +189,10 @@ void loop()
 
     if (CANErrorCount > 3)
     {
-        flags[0] = 0;
+        shutdownDetect->setFlag();
     }
+
+    inverter->runInverter(flags, accVol, torque);
 
     digitalWrite(AIR_PLUS_SIG, flags[0]);
 

@@ -23,6 +23,8 @@ class Switch
     void updateState(unsigned char readValue);
 
     void resetFlag();
+
+    void setFlag();
 };
 
 #endif
