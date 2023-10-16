@@ -104,10 +104,12 @@ public:
     void checkMsg(unsigned long id);
 };
 
+/*
 inline uint32_t CanStandardId(uint32_t const id)
 {
     static uint32_t constexpr CAN_SFF_MASK = 0x000007FFU;
     return (id & CAN_SFF_MASK);
 }
+*/
 
 #endif
