@@ -126,7 +126,7 @@ void loop()
         driveSW->resetFlag();
     }
 
-    inverter->runInverter(flags, 370, -torque);
+    inverter->runInverter(flags, 380, -torque);
 
     digitalWrite(AIR_PLUS_SIG, flags[0]);
     digitalWrite(AIR_MINUS_SIG, HIGH);
